@@ -81,7 +81,7 @@ const Layout = ({ children }) => {
 
       {/* BOTTOM NAV */}
       <nav className="fixed bottom-0 left-0 right-0 z-50">
-        <div className="mx-3 mb-3 rounded-2xl bg-white dark:bg-slate-900 shadow-xl border dark:border-slate-800 flex justify-between px-4 py-2 backdrop-blur-md dark:bg-opacity-80">
+        <div className="mx-3 mb-1 rounded-2xl bg-white dark:bg-slate-900 shadow-xl border dark:border-slate-800 flex justify-between px-4 py-2 backdrop-blur-md dark:bg-opacity-80">
           {navItems.map(({ icon: Icon, label, path }) => {
             const active = location.pathname === path;
             return (
@@ -95,7 +95,9 @@ const Layout = ({ children }) => {
                 }`}
               >
                 <Icon size={22} strokeWidth={active ? 2.5 : 1.8} />
-                <span className="text-[11px] font-medium">{label}</span>
+                <span className="text-[11px] font-medium dark:text-slate-200">
+                  {label}
+                </span>
 
                 {active && (
                   <span className="w-1.5 h-1.5 bg-blue-600 dark:bg-blue-400 rounded-full mt-0.5"></span>

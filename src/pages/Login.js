@@ -40,6 +40,7 @@ const Login = () => {
       // ON RÉINITIALISE LE CODE ET ON PASSE À L'ÉTAPE 2
       setCode("");
       setStep(2);
+      setCode("");
     } catch (err) {
       alert("Erreur serveur. Vérifiez le format du numéro.");
     }
@@ -61,13 +62,13 @@ const Login = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[80vh] p-6">
-      <div className="w-full max-w-md bg-white p-8 rounded-3xl shadow-xl border border-gray-100">
+    <div className="flex flex-col items-center justify-center min-h-[80vh] p-6 bg-gray-50 dark:bg-slate-950 transition-colors duration-300">
+      <div className="w-full max-w-md bg-white p-8 rounded-3xl shadow-xl border border-gray-100 dark:bg-slate-900 dark:border-slate-800">
         <div className="text-center mb-8">
           <div className="bg-green-100 text-green-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
             {step === 1 ? "📱" : "🔑"}
           </div>
-          <h2 className="text-2xl font-black italic">NIPLAN</h2>
+          <h2 className="text-2xl font-black italic">Niplan</h2>
         </div>
 
         {step === 1 ? (
@@ -78,7 +79,7 @@ const Login = () => {
             <input
               type="text"
               placeholder="Ex: 243812345678"
-              className="w-full p-4 bg-gray-50 border rounded-2xl outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full p-4 bg-gray-50 border rounded-2xl outline-none focus:ring-2 focus:ring-green-500 dark:bg-slate-800 dark:border-slate-700 dark:focus:ring-green-400"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
             />
