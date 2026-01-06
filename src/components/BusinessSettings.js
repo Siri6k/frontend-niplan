@@ -1,0 +1,114 @@
+import React, { useState } from "react";
+import api from "../api";
+
+const BusinessSettings = ({ businessData, onUpdate }) => {
+  const [name, setName] = useState(businessData.name);
+  const [description, setDescription] = useState(businessData.description);
+  const [logo, setLogo] = useState(null);
+  const [preview, setPreview] = useState(businessData.logo);
+  const [loading, setLoading] = useState(false);
+
+  const handleLogoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setLogo(file);
+      setPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("description", description);
+    if (logo) formData.append("logo", logo);
+
+    try {
+      const response = await api.patch("/my-business/update/", formData);
+
+      if (response.status === 200) {
+        alert("Boutique mise à jour !");
+        onUpdate(); // Cela rafraîchit le header du dashboard
+      }
+
+      if (response.ok) {
+        alert("Boutique mise à jour !");
+      }
+    } catch (error) {
+      console.error("Erreur de mise à jour", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="max-w-md mx-auto p-6 bg-white rounded-2xl shadow-sm border border-gray-100 dark:bg-slate-900 dark:border-slate-800">
+      <h2 className="text-2xl font-bold text-gray-800 mb-6 dark:text-slate-200">
+        Ma Boutique
+      </h2>
+
+      <form onSubmit={handleSave} className="space-y-5">
+        {/* Section Logo */}
+        <div className="flex flex-col items-center">
+          <div className="relative w-24 h-24 mb-2">
+            <img
+              src={preview || "https://via.placeholder.com/100?text=Logo"}
+              className="w-full h-full rounded-full object-cover border-2 border-green-500"
+              alt="Logo Business"
+            />
+            <label className="absolute bottom-0 right-0 bg-green-600 p-2 rounded-full cursor-pointer shadow-lg">
+              <span className="text-white text-xs">📷</span>
+              <input
+                type="file"
+                className="hidden"
+                onChange={handleLogoChange}
+                accept="image/*"
+              />
+            </label>
+          </div>
+          <p className="text-xs text-gray-500">
+            Cliquez pour changer votre logo
+          </p>
+        </div>
+
+        {/* Champs texte */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-slate-200">
+            Nom de la boutique
+          </label>
+          <input
+            type="text"
+            className="mt-1 w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none dark:bg-slate-800 dark:border-slate-700"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-slate-200">
+            Description (Bio)
+          </label>
+          <textarea
+            rows="3"
+            placeholder="Ex: Vente de téléphones originaux à Kinshasa..."
+            className="mt-1 w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none dark:bg-slate-800 dark:border-slate-700"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full py-4 bg-black text-white font-bold rounded-xl hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading ? "Mise à jour..." : "Enregistrer les modifications"}
+        </button>
+      </form>
+    </div>
+  );
+};
+
+export default BusinessSettings;
