@@ -8,9 +8,49 @@ import {
   Settings,
   Shop,
   Check,
+  Share2,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import BusinessSettings from "../components/BusinessSettings"; // Import du composant de profil
+
+const ShareBusiness = ({ slug }) => {
+  const shopUrl = `${window.location.origin}/b/${slug}`;
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Ma boutique Niplan",
+          text: "Découvrez mes produits sur ma boutique en ligne !",
+          url: shopUrl,
+        });
+      } catch (err) {
+        console.log("Partage annulé");
+      }
+    } else {
+      // Fallback si WebShare API n'est pas dispo (ex: copie lien)
+      navigator.clipboard.writeText(shopUrl);
+      alert("Lien de la boutique copié !");
+    }
+  };
+
+  return (
+    <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-2xl border border-blue-100 dark:border-blue-800 flex items-center justify-between mb-6">
+      <div className="flex-1">
+        <p className="text-[10px] text-blue-600 dark:text-blue-400 font-bold uppercase tracking-wider">
+          Lien de votre boutique
+        </p>
+        <p className="text-xs text-gray-500 truncate mr-4">{shopUrl}</p>
+      </div>
+      <button
+        onClick={handleShare}
+        className="bg-blue-600 text-white p-3 rounded-xl shadow-lg active:scale-90 transition-all"
+      >
+        <Share2 size={20} />
+      </button>
+    </div>
+  );
+};
 
 const Dashboard = () => {
   const [view, setView] = useState("products"); // Switch entre 'products' et 'settings'
@@ -44,6 +84,15 @@ const Dashboard = () => {
       console.error("Erreur chargement profil");
     }
   };
+
+  // Dans Dashboard.js
+  const location = useLocation();
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("tab") === "settings") {
+      setView("settings");
+    }
+  }, [location]);
 
   const fetchMyProducts = async () => {
     try {
@@ -153,6 +202,8 @@ const Dashboard = () => {
       <div className="p-4">
         {view === "products" ? (
           <>
+            {/* Le vendeur peut partager sa boutique publique */}
+            <ShareBusiness slug={businessData.slug} />
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-bold text-gray-700  dark:text-slate-300">
                 {myProducts.length} Articles

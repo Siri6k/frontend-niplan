@@ -26,11 +26,25 @@ const Layout = ({ children }) => {
       setIsDark(true);
     }
   };
+  // 1. Vérifier si l'utilisateur est connecté
+  const isAuthenticated = !!localStorage.getItem("access_token");
 
   const navItems = [
-    { icon: Home, label: "Accueil", path: "/" },
-    { icon: ShoppingBag, label: "Boutique", path: "/dashboard" },
-    { icon: User, label: "Profil", path: "/login" },
+    {
+      icon: Home,
+      label: "Accueil",
+      path: "/",
+    },
+    {
+      icon: ShoppingBag,
+      label: "Boutique",
+      path: "/dashboard",
+    },
+    {
+      icon: User,
+      label: isAuthenticated ? "Mon Profil" : "Connexion",
+      path: isAuthenticated ? "/dashboard?tab=settings" : "/login",
+    },
   ];
 
   return (
