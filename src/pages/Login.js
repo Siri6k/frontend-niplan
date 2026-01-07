@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
+import toast from "react-hot-toast";
 
 const Login = () => {
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
+  const [error, setError] = useState("");
+  const [validCode, setValidCode] = useState("");
+
   const [step, setStep] = useState(1);
   const navigate = useNavigate();
 
@@ -18,14 +22,16 @@ const Login = () => {
 
   // --- 2. ÉTAPE 1 : ENVOI MESSAGE WHATSAPP ---
   const handleContactAdmin = async () => {
-    if (!phone) return alert("Entrez votre numéro");
-
+    if (!phone) {
+      toast.error("Veuillez entrer un numéro WhatsApp valide.");
+      setError("Veuillez entrer un numéro WhatsApp valide.");
+      return;
+    }
     try {
       // On prévient le backend pour qu'il génère le code en attente
       const res = await api.post("/auth/request-otp/", {
         phone_whatsapp: phone,
       });
-
       // On prépare le message pour l'admin (ou le bot)
       const adminNumber = "243899530506"; // Ton numéro admin
       const message = `Bonjour Kifanyi, je souhaite activer ma boutique pour le numéro ${phone}.`;
@@ -38,11 +44,12 @@ const Login = () => {
 
       // On passe à l'étape du code sur le site
       // ON RÉINITIALISE LE CODE ET ON PASSE À L'ÉTAPE 2
-      setCode("");
+      setError("");
+      setValidCode(res.data.otp_code); // Pour le développement, on affiche le code reçu
       setStep(2);
-      setCode("");
+      toast.success(res.data.message);
     } catch (err) {
-      alert("Erreur serveur. Vérifiez le format du numéro.");
+      toast.error("Erreur serveur. Vérifiez le format du numéro.");
     }
   };
 
@@ -56,8 +63,9 @@ const Login = () => {
 
       localStorage.setItem("access_token", res.data.access);
       navigate("/dashboard");
+      toast.success("Connecté avec succès !");
     } catch (err) {
-      alert("Code incorrect. Demandez-en un nouveau au bot.");
+      toast.error("Code incorrect. Veuillez réessayer.");
     }
   };
 
@@ -74,8 +82,11 @@ const Login = () => {
         {step === 1 ? (
           <div className="space-y-4">
             <p className="text-sm text-gray-500 text-center">
-              Entrez votre numéro WhatsApp pour obtenir votre code d'accès.
+              Entrez votre numéro WhatsApp pour obtenir le code d'accès.
             </p>
+            {error && (
+              <p className="text-xs text-red-500 text-center">{error}</p>
+            )}
             <input
               type="text"
               placeholder="Ex: 243812345678"
@@ -83,6 +94,9 @@ const Login = () => {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
             />
+            <p className="text-xs text-gray-400 text-center">
+              Assurez-vous d'inclure l'indicatif pays (ex: +243 pour la RDC).
+            </p>
             <button
               onClick={handleContactAdmin}
               className="w-full bg-green-600 text-white p-4 rounded-2xl font-bold flex items-center justify-center gap-2"
@@ -93,15 +107,18 @@ const Login = () => {
         ) : (
           <div className="space-y-4">
             <p className="text-sm text-gray-500 text-center">
-              Entrez le code de 6 chiffres envoyé par le bot.
+              Entrez le code de 6 chiffres ci dessous.
             </p>
             <input
               type="text"
-              placeholder="0 0 0 0 0 0"
-              className="w-full p-4 bg-gray-50 border rounded-2xl text-center text-2xl font-mono tracking-widest outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="000000"
+              className="w-full p-4 bg-gray-50 border rounded-2xl text-center text-2xl font-mono tracking-widest outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:border-slate-700 dark:focus:ring-blue-400"
               maxLength="6"
               onChange={(e) => setCode(e.target.value)}
             />
+            {error && (
+              <p className="text-xs text-red-500 text-center">{error}</p>
+            )}
             <button
               onClick={handleVerifyOTP}
               className="w-full bg-black text-white p-4 rounded-2xl font-bold"
