@@ -89,7 +89,7 @@ const Login = () => {
             )}
             <input
               type="text"
-              placeholder="Ex: 243812345678"
+              placeholder="Ex: +24381XXXXXX"
               className="w-full p-4 bg-gray-50 border rounded-2xl outline-none focus:ring-2 focus:ring-green-500 dark:bg-slate-800 dark:border-slate-700 dark:focus:ring-green-400"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
