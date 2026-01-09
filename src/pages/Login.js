@@ -21,7 +21,9 @@ const Login = () => {
       navigate("/dashboard");
     }
   }, [navigate]);
+
   const sendAdminWhatsAppMessage = (phone) => {
+    setCode("");
     const adminNumber = "243899530506";
     const message = `Bonjour Niplan, je souhaite activer ma boutique pour le numéro ${phone}.`;
     const whatsappUrl = `https://wa.me/${adminNumber}?text=${encodeURIComponent(
@@ -101,9 +103,7 @@ const Login = () => {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
             />
-            <p className="text-xs text-gray-400 text-center">
-              Assurez-vous d'inclure l'indicatif pays (ex: +243 pour la RDC).
-            </p>
+
             <button
               onClick={receiveOtp}
               className="w-full bg-green-600 text-white p-4 rounded-2xl font-bold flex items-center justify-center gap-2"
@@ -114,8 +114,13 @@ const Login = () => {
         ) : (
           <div className="space-y-4">
             <p className="text-sm text-gray-500 text-center">
-              Entrez le code de 6 chiffres obtenu sur WhatsApp.
+              Entrez le code de 6 chiffres recu sur WhatsApp.
             </p>
+            {phone && isCodeSent && (
+              <p className="text-xs text-gray-400 text-center">
+                Code envoyé au {phone}
+              </p>
+            )}
             <input
               type="text"
               placeholder="000000"
@@ -138,7 +143,7 @@ const Login = () => {
                 onClick={() => sendAdminWhatsAppMessage(phone)}
                 className="w-full bg-gray-200 text-gray-700 p-4 rounded-2xl font-bold flex items-center justify-center gap-2"
               >
-                Renvoyer le code
+                Demander un nouveau code via WhatsApp
               </button>
             )}
             <button
