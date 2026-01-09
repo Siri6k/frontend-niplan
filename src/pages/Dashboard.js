@@ -10,6 +10,7 @@ import {
   Check,
   Share2,
   Settings2Icon,
+  Edit2,
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import BusinessSettings from "../components/BusinessSettings"; // Import du composant de profil
@@ -362,7 +363,13 @@ const Dashboard = () => {
                     </p>
                   </div>
                   <button
-                    onClick={() => handleDeleteProduct(p.id)}
+                    onClick={() => handleDeleteProduct(p.slug)}
+                    className="text-red-300 hover:text-red-500 p-2"
+                  >
+                    <Edit2 size={18} color="green" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteProduct(p.slug)}
                     className="text-red-300 hover:text-red-500 p-2"
                   >
                     <Trash2 size={18} />
