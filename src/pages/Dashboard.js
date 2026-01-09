@@ -69,6 +69,10 @@ const Dashboard = () => {
     location: "Kinshasa, RDC",
     exchange_for: "",
   });
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [editProduct, setEditProduct] = useState({});
+  const [editProductSlug, setEditProductSlug] = useState("");
+
   const role = localStorage.getItem("role");
   const navigate = useNavigate();
 
@@ -142,11 +146,50 @@ const Dashboard = () => {
       toast.error("Erreur lors de l'ajout du produit");
     }
   };
+  const handleEditProduct = (product) => {
+    setShowAddForm(false);
+    // On remplit l'état avec toutes les données actuelles du produit
+    setEditProduct({
+      name: product.name,
+      price: product.price,
+      currency: product.currency,
+      description: product.description,
+      location: product.location,
+      exchange_for: product.exchange_for || "",
+      image: null, // On ne peut pas pré-remplir un input file pour des raisons de sécurité
+    });
+    setEditProductSlug(product.slug);
+    setShowEditForm(true);
+  };
+  const submitEditProduct = async (e) => {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append("name", editProduct.name);
+    formData.append("price", editProduct.price);
+    formData.append("currency", editProduct.currency);
+    formData.append("description", editProduct.description);
+    formData.append("location", editProduct.location);
+    if (editProduct.image) {
+      formData.append("image", editProduct.image);
+    }
+    if (businessData.business_type === "TROC") {
+      formData.append("exchange_for", editProduct.exchange_for);
+    }
 
-  const handleDeleteProduct = async (id) => {
+    try {
+      await api.patch(`/my-products/${editProductSlug}/edit/`, formData);
+      toast.success("Produit modifié avec succès");
+      setEditProductSlug("");
+      setShowEditForm(false);
+      fetchMyProducts();
+    } catch (err) {
+      toast.error("Erreur lors de la modification du produit");
+    }
+  };
+  const handleDeleteProduct = async (slug) => {
     if (window.confirm("Supprimer ce produit ?")) {
       try {
-        await api.delete(`/my-products/${id}/delete/`);
+        await api.delete(`/my-products/${slug}/delete/`);
         fetchMyProducts();
         toast.success("Produit supprimé");
       } catch (err) {
@@ -345,35 +388,160 @@ const Dashboard = () => {
 
             <div className="space-y-3">
               {myProducts.map((p) => (
-                <div
-                  key={p.id}
-                  className="flex items-center gap-4 p-3 bg-white rounded-2xl shadow-sm border border-gray-100 dark:bg-slate-900 dark:border-slate-800"
-                >
-                  <img
-                    src={p.image}
-                    className="w-16 h-16 rounded-xl object-cover"
-                    alt={p.name}
-                  />
-                  <div className="flex-1">
-                    <h3 className="font-bold text-gray-800 text-sm dark:text-slate-200">
-                      {p.name}
-                    </h3>
-                    <p className="text-blue-600 font-bold">
-                      {p.price} {p.currency}
-                    </p>
+                <div key={p.id}>
+                  <div
+                    key={p.id}
+                    id={p.slug}
+                    className="flex items-center gap-4 p-3 bg-white rounded-2xl shadow-sm border border-gray-100 dark:bg-slate-900 dark:border-slate-800"
+                  >
+                    <img
+                      src={p.image}
+                      className="w-16 h-16 rounded-xl object-cover"
+                      alt={p.name}
+                    />
+                    <div className="flex-1">
+                      <h3 className="font-bold text-gray-800 text-sm dark:text-slate-200">
+                        {p.name}
+                      </h3>
+                      <p className="text-blue-600 font-bold">
+                        {p.price} {p.currency}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleEditProduct(p)} // On passe l'objet complet 'p'
+                      className="text-green-500 hover:text-green-700 p-2"
+                    >
+                      <Edit2 size={18} />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteProduct(p.slug)}
+                      className="text-red-300 hover:text-red-500 p-2"
+                    >
+                      <Trash2 size={18} />
+                    </button>
                   </div>
-                  <button
-                    onClick={() => handleDeleteProduct(p.slug)}
-                    className="text-red-300 hover:text-red-500 p-2"
-                  >
-                    <Edit2 size={18} color="green" />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteProduct(p.slug)}
-                    className="text-red-300 hover:text-red-500 p-2"
-                  >
-                    <Trash2 size={18} />
-                  </button>
+                  {showEditForm && editProductSlug === p.slug && (
+                    <form
+                      onSubmit={submitEditProduct}
+                      key={p.slug}
+                      className="mb-6 p-4 bg-white border rounded-2xl shadow-sm dark:bg-slate-900"
+                    >
+                      {businessData.business_type === "TROC" && (
+                        <p className="text-xs text-gray-500 mb-4 text-center dark:text-slate-400">
+                          Vous avez choisi le type "Troc". N'oubliez pas de
+                          remplir le champ "Échange contre" lors de l'ajout d'un
+                          produit.
+                        </p>
+                      )}
+                      <input
+                        type="text"
+                        placeholder="Nom du produit"
+                        required
+                        defaultValue={p.name}
+                        className="w-full p-3 mb-2 bg-gray-20 rounded-xl dark:bg-slate-800"
+                        onChange={(e) =>
+                          setEditProduct({
+                            ...editProduct,
+                            name: e.target.value,
+                          })
+                        }
+                      />
+                      {/* Remplace l'ancien input prix par ce groupe */}
+                      <div className="flex gap-2 mb-2">
+                        <input
+                          type="number"
+                          step="any"
+                          placeholder="Prix"
+                          required
+                          defaultValue={p.price}
+                          className="flex-1 p-3 bg-gray-50 rounded-xl dark:bg-slate-800 dark:text-white"
+                          onChange={(e) =>
+                            setEditProduct({
+                              ...editProduct,
+                              price: e.target.value,
+                            })
+                          }
+                        />
+                        <select
+                          className="w-24 p-3 bg-gray-50 rounded-xl border-none font-bold text-blue-400 dark:bg-slate-800"
+                          defaultValue={p.currency}
+                          onChange={(e) =>
+                            setEditProduct({
+                              ...editProduct,
+                              currency: e.target.value,
+                            })
+                          }
+                        >
+                          <option value="USD">USD</option>
+                          <option value="CDF">CDF</option>
+                        </select>
+                      </div>
+                      {businessData.business_type === "TROC" && (
+                        <input
+                          type="text"
+                          placeholder="Échange contre"
+                          defaultValue={p.exchange_for}
+                          className="w-full p-3 mb-2 bg-gray-50 rounded-xl dark:bg-slate-800"
+                          onChange={(e) =>
+                            setEditProduct({
+                              ...editProduct,
+                              exchange_for: e.target.value,
+                            })
+                          }
+                        />
+                      )}
+                      <input
+                        type="text"
+                        placeholder="Ville ou Localisation"
+                        required
+                        defaultValue={p.location}
+                        className="w-full p-3 mb-2 bg-gray-50 rounded-xl dark:bg-slate-800"
+                        onChange={(e) =>
+                          setEditProduct({
+                            ...editProduct,
+                            location: e.target.value,
+                          })
+                        }
+                      />
+                      <textarea
+                        placeholder="Description du produit"
+                        defaultValue={p.description}
+                        className="w-full p-3 mb-2 bg-gray-50 rounded-xl dark:bg-slate-800"
+                        onChange={(e) =>
+                          setEditProduct({
+                            ...editProduct,
+                            description: e.target.value,
+                          })
+                        }
+                      />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="w-full mb-4 text-xs text-gray-500 dark:text-slate-400"
+                        onChange={(e) =>
+                          setEditProduct({
+                            ...editProduct,
+                            image: e.target.files[0],
+                          })
+                        }
+                      />
+                      <div className="flex justify-content gap-2">
+                        <button
+                          type="submit"
+                          className="w-full bg-green-600 text-white py-3 rounded-xl font-bold dark:bg-green-700 hover:bg-green-700 transition-colors"
+                        >
+                          Modifier
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShowEditForm(false)}
+                          className="w-full bg-gray-600 text-white py-3 rounded-xl font-bold dark:bg-gray-700 hover:bg-green-700 transition-colors"
+                        >
+                          Annuler
+                        </button>
+                      </div>
+                    </form>
+                  )}
                 </div>
               ))}
             </div>

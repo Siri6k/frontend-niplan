@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import api from "../api";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const BusinessSettings = ({ businessData, onUpdate }) => {
   const [name, setName] = useState(businessData.name);
@@ -10,11 +11,10 @@ const BusinessSettings = ({ businessData, onUpdate }) => {
   const [businessType, setBusinessType] = useState(
     businessData.business_type || "boutique"
   );
-  const defaultPreview =
-    businessData.logo ||
-    "https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg";
+  const businessUrl = businessData?.slug;
   const [preview, setPreview] = useState(businessData.logo);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleLogoChange = (e) => {
     const file = e.target.files[0];
@@ -32,7 +32,7 @@ const BusinessSettings = ({ businessData, onUpdate }) => {
     formData.append("name", name);
     formData.append("description", description);
     formData.append("business_type", businessType); // <-- Ajout ici
-    formData.append("location", businessData.location);
+    formData.append("location", location);
     if (logo) formData.append("logo", logo);
 
     try {
@@ -46,6 +46,7 @@ const BusinessSettings = ({ businessData, onUpdate }) => {
       toast.error("Erreur lors de la mise à jour");
     } finally {
       setLoading(false);
+      navigate("/b/" + businessUrl);
     }
   };
 
@@ -56,7 +57,7 @@ const BusinessSettings = ({ businessData, onUpdate }) => {
         <div className="flex flex-col items-center">
           <div className="relative w-24 h-24 mb-2">
             <img
-              src={preview || "https://via.placeholder.com/100?text=Logo"}
+              src={preview || "https://via.placeholder.com/100"}
               className="w-full h-full rounded-full object-cover border-2 border-green-500"
               alt="Logo Business"
             />
@@ -124,7 +125,7 @@ const BusinessSettings = ({ businessData, onUpdate }) => {
             type="text"
             className="mt-1 w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none dark:bg-slate-800 dark:border-slate-700"
             value={location}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => setLocation(e.target.value)}
           />
         </div>
         <button
