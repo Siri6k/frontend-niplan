@@ -125,12 +125,15 @@ const Login = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            <p className="text-sm text-gray-500 text-center">
-              Entrez le code de 6 chiffres recu sur WhatsApp.
-            </p>
+            {!isCodeSent && (
+              <p className="text-sm text-gray-900 text-center dark:text-slate-400">
+                Demandez le code via WhatsApp
+              </p>
+            )}
+
             {phone && isCodeSent && !error && (
-              <p className="text-xs text-gray-400 text-center">
-                Code envoyé au {phone}
+              <p className="text-xs text-gray-900 text-center dark:text-slate-500">
+                Entrez le code de 6 chiffres recu sur WhatsApp
               </p>
             )}
             {error && (
@@ -139,7 +142,7 @@ const Login = () => {
             <input
               type="text"
               placeholder="000000"
-              className="w-full p-4 bg-gray-50 border rounded-2xl text-center text-2xl font-mono tracking-widest outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:border-slate-700 dark:focus:ring-blue-400"
+              className="w-full p-4 bg-gray-250 border rounded-2xl text-center text-2xl font-mono tracking-widest outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:border-slate-700 dark:focus:ring-blue-400"
               maxLength="6"
               value={code}
               onChange={(e) => setCode(e.target.value)}
@@ -155,17 +158,26 @@ const Login = () => {
             ) : (
               <button
                 onClick={() => sendAdminWhatsAppMessage(phone)}
-                className="w-full bg-gray-200 text-gray-700 p-4 rounded-2xl font-bold flex items-center justify-center gap-2"
+                className="w-full bg-green-400 text-gray-700 p-4 rounded-2xl font-bold flex items-center justify-center gap-2 dark:bg-slate-700 dark:text-slate-300"
               >
-                Renouveler code WhatsApp
+                Renouveler code WhatsApp 📲
               </button>
             )}
-            <button
-              onClick={() => setStep(1)}
-              className="w-full text-gray-400 text-xs uppercase tracking-widest"
-            >
-              Modifier le numéro
-            </button>
+            {isCodeSent ? (
+              <button
+                onClick={() => setStep(1)}
+                className="w-full text-gray-400 text-xs uppercase tracking-widest"
+              >
+                Modifier le numéro
+              </button>
+            ) : (
+              <button
+                onClick={() => setStep(1)}
+                className="w-full text-gray-400 text-xs uppercase tracking-widest"
+              >
+                Renvoyer le code
+              </button>
+            )}
           </div>
         )}
       </div>
