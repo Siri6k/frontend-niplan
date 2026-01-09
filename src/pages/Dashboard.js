@@ -346,7 +346,9 @@ const Dashboard = () => {
                     <h3 className="font-bold text-gray-800 text-sm dark:text-slate-200">
                       {p.name}
                     </h3>
-                    <p className="text-blue-600 font-bold">{p.price} $</p>
+                    <p className="text-blue-600 font-bold">
+                      {p.price} {p.currency}
+                    </p>
                   </div>
                   <button
                     onClick={() => handleDeleteProduct(p.id)}
