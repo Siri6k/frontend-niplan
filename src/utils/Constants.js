@@ -15,6 +15,10 @@ export const normalizedPhoneNumber = (phone_number) => {
   // For numbers with +, return as is (only digits and +)
   return rawPhone;
 };
+export const isValidPhoneNumber = (phone_number) => {
+  const normalized = normalizedPhoneNumber(phone_number);
+  return normalized.length === 13 || !normalized.startsWith("+243");
+};
 
 export const ProtectedAdminRoute = ({ children }) => {
   const token = localStorage.getItem("access_token");

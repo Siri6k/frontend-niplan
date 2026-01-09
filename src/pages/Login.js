@@ -2,12 +2,14 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
 import toast from "react-hot-toast";
+import { isValidPhoneNumber, normalizedPhoneNumber } from "../utils/Constants";
 
 const Login = () => {
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [validCode, setValidCode] = useState("");
+  const [isCodeSent, setIsCodeSent] = useState(false);
 
   const [step, setStep] = useState(1);
   const navigate = useNavigate();
@@ -19,28 +21,33 @@ const Login = () => {
       navigate("/dashboard");
     }
   }, [navigate]);
-
+  const sendAdminWhatsAppMessage = (phone) => {
+    const adminNumber = "243899530506";
+    const message = `Bonjour Niplan, je souhaite activer ma boutique pour le numéro ${phone}.`;
+    const whatsappUrl = `https://wa.me/${adminNumber}?text=${encodeURIComponent(
+      message
+    )}`;
+    window.open(whatsappUrl, "_blank");
+    setIsCodeSent(true);
+  };
   // --- 2. ÉTAPE 1 : ENVOI MESSAGE WHATSAPP ---
-  const handleContactAdmin = async () => {
+  const receiveOtp = async () => {
     if (!phone) {
       toast.error("Veuillez entrer un numéro WhatsApp valide.");
       setError("Veuillez entrer un numéro WhatsApp valide.");
       return;
     }
+    if (!isValidPhoneNumber(phone)) {
+      toast.error("Le numéro WhatsApp n'est pas valide.");
+      setError("Le numéro WhatsApp n'est pas valide.");
+      return;
+    }
+    setPhone(normalizedPhoneNumber(phone)); // Normalisation du numéro
     try {
       // On prévient le backend pour qu'il génère le code en attente
       const res = await api.post("/auth/request-otp/", {
         phone_whatsapp: phone,
       });
-      // On prépare le message pour l'admin (ou le bot)
-      const adminNumber = "243899530506"; // Ton numéro admin
-      const message = `Bonjour Kifanyi, je souhaite activer ma boutique pour le numéro ${phone}.`;
-      const whatsappUrl = `https://wa.me/${adminNumber}?text=${encodeURIComponent(
-        message
-      )}`;
-
-      // Ouvre WhatsApp dans un nouvel onglet
-      window.open(whatsappUrl, "_blank");
 
       // On passe à l'étape du code sur le site
       // ON RÉINITIALISE LE CODE ET ON PASSE À L'ÉTAPE 2
@@ -98,7 +105,7 @@ const Login = () => {
               Assurez-vous d'inclure l'indicatif pays (ex: +243 pour la RDC).
             </p>
             <button
-              onClick={handleContactAdmin}
+              onClick={receiveOtp}
               className="w-full bg-green-600 text-white p-4 rounded-2xl font-bold flex items-center justify-center gap-2"
             >
               Obtenir mon code sur WhatsApp
@@ -107,7 +114,7 @@ const Login = () => {
         ) : (
           <div className="space-y-4">
             <p className="text-sm text-gray-500 text-center">
-              Entrez le code de 6 chiffres ci dessous.
+              Entrez le code de 6 chiffres obtenu sur WhatsApp.
             </p>
             <input
               type="text"
@@ -119,12 +126,21 @@ const Login = () => {
             {error && (
               <p className="text-xs text-red-500 text-center">{error}</p>
             )}
-            <button
-              onClick={handleVerifyOTP}
-              className="w-full bg-black text-white p-4 rounded-2xl font-bold"
-            >
-              Valider et Entrer
-            </button>
+            {isCodeSent ? (
+              <button
+                onClick={handleVerifyOTP}
+                className="w-full bg-black text-white p-4 rounded-2xl font-bold"
+              >
+                Valider et Entrer
+              </button>
+            ) : (
+              <button
+                onClick={() => sendAdminWhatsAppMessage(phone)}
+                className="w-full bg-gray-200 text-gray-700 p-4 rounded-2xl font-bold flex items-center justify-center gap-2"
+              >
+                Renvoyer le code
+              </button>
+            )}
             <button
               onClick={() => setStep(1)}
               className="w-full text-gray-400 text-xs uppercase tracking-widest"
