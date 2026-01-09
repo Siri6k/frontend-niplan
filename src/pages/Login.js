@@ -22,6 +22,11 @@ const Login = () => {
     }
   }, [navigate]);
 
+  const handleChange = (e) => {
+    setError("");
+    setCode(e.target.value);
+  };
+
   const sendAdminWhatsAppMessage = (phone) => {
     setCode("");
     setError("");
@@ -131,7 +136,7 @@ const Login = () => {
               </p>
             )}
 
-            {phone && isCodeSent && !error && (
+            {phone && isCodeSent && (
               <p className="text-xs text-gray-900 text-center dark:text-slate-500">
                 Entrez le code de 6 chiffres recu sur WhatsApp
               </p>
@@ -145,10 +150,10 @@ const Login = () => {
               className="w-full p-4 bg-gray-250 border rounded-2xl text-center text-2xl font-mono tracking-widest outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:border-slate-700 dark:focus:ring-blue-400"
               maxLength="6"
               value={code}
-              onChange={(e) => setCode(e.target.value)}
+              onChange={(e) => handleChange(e)}
             />
 
-            {isCodeSent && !error ? (
+            {isCodeSent ? (
               <button
                 onClick={handleVerifyOTP}
                 className="w-full bg-black text-white p-4 rounded-2xl font-bold"
@@ -168,14 +173,14 @@ const Login = () => {
                 onClick={() => setStep(1)}
                 className="w-full text-gray-400 text-xs uppercase tracking-widest"
               >
-                Modifier le numéro
+                Renvoyer le code
               </button>
             ) : (
               <button
                 onClick={() => setStep(1)}
                 className="w-full text-gray-400 text-xs uppercase tracking-widest"
               >
-                Renvoyer le code
+                Modifier le numéro
               </button>
             )}
           </div>

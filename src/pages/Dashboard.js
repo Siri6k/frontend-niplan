@@ -125,6 +125,9 @@ const Dashboard = () => {
     formData.append("description", newProduct.description);
     formData.append("location", newProduct.location);
     formData.append("image", newProduct.image);
+    if (businessData.business_type === "TROC") {
+      formData.append("exchange_for", newProduct.exchange_for);
+    }
 
     try {
       await api.post("/my-products/create/", formData);
@@ -161,7 +164,10 @@ const Dashboard = () => {
       <div className="bg-white p-6 border-b flex justify-between items-center shadow-sm dark:bg-slate-900">
         <div className="flex items-center gap-3 dark:text-slate-200">
           <img
-            src={businessData.logo || "https://via.placeholder.com/100"}
+            src={
+              businessData.logo ||
+              "https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
+            }
             className="w-12 h-12 rounded-full object-cover border-2 border-blue-500"
             alt="Logo"
           />
@@ -181,7 +187,7 @@ const Dashboard = () => {
                 className="text-xs text-red-500 mt-1 underline"
               >
                 <div className="text-xs text-white bg-green-500 inline-block px-2 py-0.5 rounded-full mt-1 dark:bg-green-600">
-                  Administrateur
+                  Super Admin{" "}
                   <Settings2Icon size={12} className="inline ml-1" />
                 </div>
               </Link>

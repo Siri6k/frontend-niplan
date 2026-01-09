@@ -25,9 +25,12 @@ const BusinessPage = () => {
       <div className="bg-gradient-to-b from-blue-600 to-blue-500 pt-12 pb-24 px-4 text-center text-white">
         <div className="w-24 h-24 bg-white rounded-3xl mx-auto mb-4 shadow-xl overflow-hidden p-1">
           <img
-            src={business.logo || "https://via.placeholder.com/150"}
+            src={
+              business.logo ||
+              "https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
+            }
             className="w-full h-full object-cover rounded-2xl"
-            alt="logo"
+            alt="logo"  
           />
         </div>
         <h1 className="text-2xl font-black">{business.name}</h1>

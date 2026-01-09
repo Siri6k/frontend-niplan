@@ -4,11 +4,15 @@ import toast from "react-hot-toast";
 
 const BusinessSettings = ({ businessData, onUpdate }) => {
   const [name, setName] = useState(businessData.name);
+  const [location, setLocation] = useState(businessData.location);
   const [description, setDescription] = useState(businessData.description);
   const [logo, setLogo] = useState(null);
   const [businessType, setBusinessType] = useState(
     businessData.business_type || "boutique"
   );
+  const defaultPreview =
+    businessData.logo ||
+    "https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg";
   const [preview, setPreview] = useState(businessData.logo);
   const [loading, setLoading] = useState(false);
 
@@ -28,6 +32,7 @@ const BusinessSettings = ({ businessData, onUpdate }) => {
     formData.append("name", name);
     formData.append("description", description);
     formData.append("business_type", businessType); // <-- Ajout ici
+    formData.append("location", businessData.location);
     if (logo) formData.append("logo", logo);
 
     try {
@@ -111,7 +116,17 @@ const BusinessSettings = ({ businessData, onUpdate }) => {
             onChange={(e) => setDescription(e.target.value)}
           />
         </div>
-
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-slate-200">
+            Ville ou localisation
+          </label>
+          <input
+            type="text"
+            className="mt-1 w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none dark:bg-slate-800 dark:border-slate-700"
+            value={location}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </div>
         <button
           type="submit"
           disabled={loading}
