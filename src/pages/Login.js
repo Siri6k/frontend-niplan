@@ -24,6 +24,7 @@ const Login = () => {
 
   const sendAdminWhatsAppMessage = (phone) => {
     setCode("");
+    setError("");
     const adminNumber = "243899530506";
     const message = `Bonjour Niplan, je souhaite activer ma boutique pour le numéro ${phone}.`;
     const whatsappUrl = `https://wa.me/${adminNumber}?text=${encodeURIComponent(
@@ -34,6 +35,8 @@ const Login = () => {
   };
   // --- 2. ÉTAPE 1 : ENVOI MESSAGE WHATSAPP ---
   const receiveOtp = async () => {
+    setCode("");
+    setIsCodeSent(false);
     if (!phone) {
       toast.error("Veuillez entrer un numéro WhatsApp valide.");
       setError("Veuillez entrer un numéro WhatsApp valide.");
@@ -54,7 +57,6 @@ const Login = () => {
       // On passe à l'étape du code sur le site
       // ON RÉINITIALISE LE CODE ET ON PASSE À L'ÉTAPE 2
       setError("");
-      setValidCode(res.data.otp_code); // Pour le développement, on affiche le code reçu
       setStep(2);
       toast.success(res.data.message);
     } catch (err) {
@@ -64,17 +66,27 @@ const Login = () => {
 
   // --- 3. ÉTAPE 2 : VÉRIFICATION DU CODE REÇU PAR LE BOT ---
   const handleVerifyOTP = async () => {
+    if (code.length !== 6) {
+      toast.error("Le code doit contenir 6 chiffres.");
+      setError("Le code doit contenir 6 chiffres.");
+      return;
+    }
     try {
       const res = await api.post("/auth/verify-otp/", {
         phone_whatsapp: phone,
         code: code,
       });
-
+      setError("");
       localStorage.setItem("access_token", res.data.access);
+      localStorage.setItem("refresh_token", res.data.refresh);
+      localStorage.setItem("business_slug", res.data.business_slug);
+      localStorage.setItem("role", res.data.role);
+
       navigate("/dashboard");
       toast.success("Connecté avec succès !");
     } catch (err) {
       toast.error("Code incorrect. Veuillez réessayer.");
+      setError("Code incorrect. Veuillez réessayer.");
     }
   };
 
@@ -108,7 +120,7 @@ const Login = () => {
               onClick={receiveOtp}
               className="w-full bg-green-600 text-white p-4 rounded-2xl font-bold flex items-center justify-center gap-2"
             >
-              Obtenir mon code sur WhatsApp
+              Se connecter
             </button>
           </div>
         ) : (
@@ -116,22 +128,24 @@ const Login = () => {
             <p className="text-sm text-gray-500 text-center">
               Entrez le code de 6 chiffres recu sur WhatsApp.
             </p>
-            {phone && isCodeSent && (
+            {phone && isCodeSent && !error && (
               <p className="text-xs text-gray-400 text-center">
                 Code envoyé au {phone}
               </p>
+            )}
+            {error && (
+              <p className="text-xs text-red-500 text-center">{error}</p>
             )}
             <input
               type="text"
               placeholder="000000"
               className="w-full p-4 bg-gray-50 border rounded-2xl text-center text-2xl font-mono tracking-widest outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:border-slate-700 dark:focus:ring-blue-400"
               maxLength="6"
+              value={code}
               onChange={(e) => setCode(e.target.value)}
             />
-            {error && (
-              <p className="text-xs text-red-500 text-center">{error}</p>
-            )}
-            {isCodeSent ? (
+
+            {isCodeSent && !error ? (
               <button
                 onClick={handleVerifyOTP}
                 className="w-full bg-black text-white p-4 rounded-2xl font-bold"
@@ -143,7 +157,7 @@ const Login = () => {
                 onClick={() => sendAdminWhatsAppMessage(phone)}
                 className="w-full bg-gray-200 text-gray-700 p-4 rounded-2xl font-bold flex items-center justify-center gap-2"
               >
-                Demander un nouveau code via WhatsApp
+                Renouveler code WhatsApp
               </button>
             )}
             <button

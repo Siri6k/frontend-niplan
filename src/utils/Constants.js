@@ -1,6 +1,10 @@
 import { Navigate } from "react-router-dom";
 
 export const normalizedPhoneNumber = (phone_number) => {
+  if (!phone_number) return "";
+  if (phone_number.startsWith("243")) {
+    phone_number = "+" + phone_number;
+  }
   // Keep the + if present, then remove all other non-digit characters
   const hasPlus = phone_number.startsWith("+");
   let rawPhone = phone_number.replace(hasPlus ? /[^\d+]/g : /\D/g, "");

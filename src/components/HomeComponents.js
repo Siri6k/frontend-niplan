@@ -65,7 +65,7 @@ export const ProductGrid = ({ products }) => {
     const phone = product.vendeur_phone || "243899530506";
 
     // Message personnalisé avec le nom et le prix du produit
-    const message = `Bonjour, je suis intéressé par votre produit : *${product.name}* au prix de ${product.price} ${product.currency}. Est-il toujours disponible ?\n\n_Vu sur Niplan Market_`;
+    const message = `Bonjour, je suis intéressé par votre produit : *${product.name}* au prix de ${product.price} ${product.currency}. Est-il toujours disponible ?\n\n_Vu sur Niplan Market_\n\n${product.image}`;
 
     // Génération du lien WhatsApp
     const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(
@@ -100,7 +100,7 @@ export const ProductGrid = ({ products }) => {
             </h3>
 
             <p className="text-green-600 font-black text-lg mb-1">
-              {product.price} $
+              {product.price} {product.currency}
             </p>
 
             <div className="flex flex-col gap-1">

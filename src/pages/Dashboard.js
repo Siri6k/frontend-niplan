@@ -9,9 +9,11 @@ import {
   Shop,
   Check,
   Share2,
+  Settings2Icon,
 } from "lucide-react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import BusinessSettings from "../components/BusinessSettings"; // Import du composant de profil
+import toast from "react-hot-toast";
 
 const ShareBusiness = ({ slug }) => {
   const shopUrl = `${window.location.origin}/b/${slug}`;
@@ -63,6 +65,7 @@ const Dashboard = () => {
     description: "",
     image: null,
   });
+  const role = localStorage.getItem("role");
   const navigate = useNavigate();
 
   // --- 1. VERIFICATION AUTH & CHARGEMENT INFOS ---
@@ -106,6 +109,9 @@ const Dashboard = () => {
   // --- 2. LOGIQUE LOGOUT ---
   const handleLogout = () => {
     localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("business_slug");
+    localStorage.removeItem("role");
     navigate("/login");
   };
 
@@ -115,6 +121,7 @@ const Dashboard = () => {
     const formData = new FormData();
     formData.append("name", newProduct.name);
     formData.append("price", newProduct.price);
+    formData.append("currency", newProduct.currency);
     formData.append("description", newProduct.description);
     formData.append("location", newProduct.location);
     formData.append("image", newProduct.image);
@@ -123,8 +130,9 @@ const Dashboard = () => {
       await api.post("/my-products/create/", formData);
       setShowAddForm(false);
       fetchMyProducts();
+      toast.success("Produit ajouté avec succès");
     } catch (err) {
-      alert("Erreur lors de l'ajout");
+      toast.error("Erreur lors de l'ajout du produit");
     }
   };
 
@@ -133,8 +141,9 @@ const Dashboard = () => {
       try {
         await api.delete(`/my-products/${id}/delete/`);
         fetchMyProducts();
+        toast.success("Produit supprimé");
       } catch (err) {
-        alert("Erreur suppression");
+        toast.error("Erreur lors de la suppression");
       }
     }
   };
@@ -160,10 +169,23 @@ const Dashboard = () => {
             <h2 className="font-bold text-gray-900 leading-none dark:text-slate-200">
               {businessData.name}
             </h2>
-            <p className="text-xs text-gray-500 mt-1 ">
-              Vendeur vérifié{" "}
-              <Check size={12} className="inline text-green-500 mr-1" />
-            </p>
+            {role === "vendor" && (
+              <p className="text-xs text-gray-500 mt-1 ">
+                Vendeur vérifié{" "}
+                <Check size={12} className="inline text-green-500 mr-1" />
+              </p>
+            )}
+            {role === "superadmin" && (
+              <Link
+                to="/admin-dashboard"
+                className="text-xs text-red-500 mt-1 underline"
+              >
+                <div className="text-xs text-white bg-green-500 inline-block px-2 py-0.5 rounded-full mt-1 dark:bg-green-600">
+                  Administrateur
+                  <Settings2Icon size={12} className="inline ml-1" />
+                </div>
+              </Link>
+            )}
           </div>
         </div>
         <button
@@ -221,25 +243,57 @@ const Dashboard = () => {
                 onSubmit={handleAddProduct}
                 className="mb-6 p-4 bg-white border rounded-2xl shadow-sm dark:bg-slate-900"
               >
+                {businessData.business_type === "TROC" && (
+                  <p className="text-xs text-gray-500 mb-4 text-center dark:text-slate-400">
+                    Vous avez choisi le type "Troc". N'oubliez pas de remplir le
+                    champ "Échange contre" lors de l'ajout d'un produit.
+                  </p>
+                )}
                 <input
                   type="text"
                   placeholder="Nom du produit"
                   required
-                  className="w-full p-3 mb-2 bg-gray-50 rounded-xl dark:bg-slate-800"
+                  className="w-full p-3 mb-2 bg-gray-20 rounded-xl dark:bg-slate-800"
                   onChange={(e) =>
                     setNewProduct({ ...newProduct, name: e.target.value })
                   }
                 />
-                <input
-                  type="number"
-                  step="any"
-                  placeholder="Prix (USD)"
-                  required
-                  className="w-full p-3 mb-2 bg-gray-50 rounded-xl dark:bg-slate-800"
-                  onChange={(e) =>
-                    setNewProduct({ ...newProduct, price: e.target.value })
-                  }
-                />
+                {/* Remplace l'ancien input prix par ce groupe */}
+                <div className="flex gap-2 mb-2">
+                  <input
+                    type="number"
+                    step="any"
+                    placeholder="Prix"
+                    required
+                    className="flex-1 p-3 bg-gray-50 rounded-xl dark:bg-slate-800 dark:text-white"
+                    onChange={(e) =>
+                      setNewProduct({ ...newProduct, price: e.target.value })
+                    }
+                  />
+                  <select
+                    className="w-24 p-3 bg-gray-50 rounded-xl border-none font-bold text-blue-400 dark:bg-slate-800"
+                    value={newProduct.currency}
+                    onChange={(e) =>
+                      setNewProduct({ ...newProduct, currency: e.target.value })
+                    }
+                  >
+                    <option value="USD">USD</option>
+                    <option value="CDF">CDF</option>
+                  </select>
+                </div>
+                {businessData.business_type === "TROC" && (
+                  <input
+                    type="text"
+                    placeholder="Échange contre"
+                    className="w-full p-3 mb-2 bg-gray-50 rounded-xl dark:bg-slate-800"
+                    onChange={(e) =>
+                      setNewProduct({
+                        ...newProduct,
+                        exchange_for: e.target.value,
+                      })
+                    }
+                  />
+                )}
                 <input
                   type="text"
                   placeholder="Ville ou Localisation"

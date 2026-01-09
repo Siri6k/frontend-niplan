@@ -1,10 +1,14 @@
 import React, { useState } from "react";
 import api from "../api";
+import toast from "react-hot-toast";
 
 const BusinessSettings = ({ businessData, onUpdate }) => {
   const [name, setName] = useState(businessData.name);
   const [description, setDescription] = useState(businessData.description);
   const [logo, setLogo] = useState(null);
+  const [businessType, setBusinessType] = useState(
+    businessData.business_type || "boutique"
+  );
   const [preview, setPreview] = useState(businessData.logo);
   const [loading, setLoading] = useState(false);
 
@@ -23,21 +27,18 @@ const BusinessSettings = ({ businessData, onUpdate }) => {
     const formData = new FormData();
     formData.append("name", name);
     formData.append("description", description);
+    formData.append("business_type", businessType); // <-- Ajout ici
     if (logo) formData.append("logo", logo);
 
     try {
       const response = await api.patch("/my-business/update/", formData);
-
       if (response.status === 200) {
-        alert("Boutique mise à jour !");
-        onUpdate(); // Cela rafraîchit le header du dashboard
-      }
-
-      if (response.ok) {
-        alert("Boutique mise à jour !");
+        toast.success("Boutique mise à jour !"); // Plus propre que alert()
+        onUpdate();
       }
     } catch (error) {
       console.error("Erreur de mise à jour", error);
+      toast.error("Erreur lors de la mise à jour");
     } finally {
       setLoading(false);
     }
@@ -45,10 +46,6 @@ const BusinessSettings = ({ businessData, onUpdate }) => {
 
   return (
     <div className="max-w-md mx-auto p-6 bg-white rounded-2xl shadow-sm border border-gray-100 dark:bg-slate-900 dark:border-slate-800">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6 dark:text-slate-200">
-        Ma Boutique
-      </h2>
-
       <form onSubmit={handleSave} className="space-y-5">
         {/* Section Logo */}
         <div className="flex flex-col items-center">
@@ -76,7 +73,7 @@ const BusinessSettings = ({ businessData, onUpdate }) => {
         {/* Champs texte */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-slate-200">
-            Nom de la boutique
+            Nom du business
           </label>
           <input
             type="text"
@@ -85,7 +82,23 @@ const BusinessSettings = ({ businessData, onUpdate }) => {
             onChange={(e) => setName(e.target.value)}
           />
         </div>
-
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-slate-200">
+            Type d'activité
+          </label>
+          <select
+            value={businessType}
+            onChange={(e) => setBusinessType(e.target.value)}
+            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+          >
+            <option value="SHOP">🛍️ Boutique (Vente générale)</option>
+            <option value="IMMO">🏠 Immobilier (Vente/Location)</option>
+            <option value="TROC">🔄 Troc (Échange d'articles)</option>
+          </select>
+          <p className="text-[10px] text-gray-400 mt-1 ml-1">
+            Cela aide les clients à trouver votre business plus facilement.
+          </p>
+        </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-slate-200">
             Description (Bio)

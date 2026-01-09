@@ -38,7 +38,7 @@ const Layout = ({ children }) => {
     {
       icon: ShoppingBag,
       label: "Boutique",
-      path: "/dashboard",
+      path: "/dashboard?tab=products",
     },
     {
       icon: User,

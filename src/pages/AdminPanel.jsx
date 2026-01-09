@@ -20,8 +20,8 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-      <header className=" p-4 shadow mt-0 ">
-        <h1 className="text-2xl font-bold text-white bg-gray-600 inline-block px-4 py-2 rounded">
+      <header className=" p-4 shadow mt-0 bg-gray-800 flex justify-center">
+        <h1 className="text-2xl  font-bold text-white bg-gray-600 inline-block px-4 py-2 rounded">
           Panneau d'Administration
         </h1>
       </header>
