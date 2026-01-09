@@ -56,7 +56,7 @@ const Login = () => {
     try {
       // On prévient le backend pour qu'il génère le code en attente
       const res = await api.post("/auth/request-otp/", {
-        phone_whatsapp: phone,
+        phone_whatsapp: normalizedPhoneNumber(phone),
       });
 
       // On passe à l'étape du code sur le site

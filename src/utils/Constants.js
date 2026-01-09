@@ -26,11 +26,11 @@ export const isValidPhoneNumber = (phone_number) => {
 export const ProtectedAdminRoute = ({ children }) => {
   const token = localStorage.getItem("access_token");
   // On peut aussi décoder le token pour vérifier si "is_staff" est True
-  const isAdmin = localStorage.getItem("is_admin") === "true";
+  const isAdmin = localStorage.getItem("role");
 
-  if (!token) {
+  if (!token && isAdmin !== "superadmin") {
     // Si pas de token ou pas admin, retour au login
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return children;

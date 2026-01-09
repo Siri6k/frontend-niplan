@@ -1,23 +1,39 @@
 import React, { useEffect, useState } from "react";
 import api from "../api";
 import { normalizedPhoneNumber } from "../utils/Constants";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const AdminDashboard = () => {
   const [users, setUsers] = useState([]);
   const [otps, setOtps] = useState([]);
+  const navigate = useNavigate();
 
+  // --- 1. VERIFICATION AUTH & CHARGEMENT INFOS ---
   useEffect(() => {
-    const loadData = async () => {
+    const isAdmin = localStorage.getItem("role");
+
+    if (isAdmin !== "superadmin") {
+      toast.error("Accès refusé : Vous n'êtes pas administrateur.");
+      navigate("/dashboard");
+    } else {
+      loadData();
+    }
+  }, []);
+
+  const loadData = async () => {
+    try {
       const [resUsers, resOtps] = await Promise.all([
         api.get("/admin/users/"),
         api.get("/admin/otps/"),
       ]);
       setUsers(resUsers.data);
       setOtps(resOtps.data);
-    };
-    loadData();
-  }, []);
-
+      toast.success("Bienvenue Admin !");
+    } catch (error) {
+      toast.error("You can't access this page");
+    }
+  };
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       <header className=" p-4 shadow mt-0 bg-gray-800 flex justify-center">
@@ -47,7 +63,7 @@ const AdminDashboard = () => {
                       {normalizedPhoneNumber(o.phone)}
                     </td>
                     <td className="p-2 font-bold text-blue-600">{o.code}</td>
-                    <td className="p-2 text-gray-500">{o.created_at}</td>
+                    <td className="p-2 text-gray-500">{o.updated_at}</td>
                   </tr>
                 ))}
               </tbody>
