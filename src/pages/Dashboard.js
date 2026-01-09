@@ -64,6 +64,9 @@ const Dashboard = () => {
     price: "",
     description: "",
     image: null,
+    currency: "USD",
+    location: "Kinshasa, RDC",
+    exchange_for: "",
   });
   const role = localStorage.getItem("role");
   const navigate = useNavigate();
@@ -283,7 +286,9 @@ const Dashboard = () => {
                       setNewProduct({ ...newProduct, currency: e.target.value })
                     }
                   >
-                    <option value="USD">USD</option>
+                    <option value="USD" selected>
+                      USD
+                    </option>
                     <option value="CDF">CDF</option>
                   </select>
                 </div>
