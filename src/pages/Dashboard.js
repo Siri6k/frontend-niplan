@@ -87,6 +87,13 @@ const Dashboard = () => {
     }
   }, [navigate]);
 
+  useEffect(() => {
+    if (showAddForm) {
+      setEditProductSlug("");
+      setShowEditForm(false);
+    }
+  }, [showAddForm]);
+
   const fetchBusinessInfo = async () => {
     try {
       const res = await api.get("/my-business/update/");
