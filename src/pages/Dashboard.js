@@ -18,6 +18,7 @@ import toast from "react-hot-toast";
 
 const ShareBusiness = ({ slug }) => {
   const shopUrl = `${window.location.origin}/b/${slug}`;
+  const navigate = useNavigate();
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -40,8 +41,11 @@ const ShareBusiness = ({ slug }) => {
   return (
     <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-2xl border border-blue-100 dark:border-blue-800 flex items-center justify-between mb-6">
       <div className="flex-1">
-        <p className="text-[10px] text-blue-600 dark:text-blue-400 font-bold uppercase tracking-wider">
-          Lien de votre boutique
+        <p
+          onClick={() => navigate(`/b/${slug}`)}
+          className="text-[10px] text-blue-600 dark:text-blue-400 font-bold uppercase tracking-wider"
+        >
+          Lien de votre business
         </p>
         <p className="text-xs text-gray-500 truncate mr-4">{shopUrl}</p>
       </div>
@@ -217,17 +221,19 @@ const Dashboard = () => {
       {/* --- HEADER INFOS VENDEUR --- */}
       <div className="bg-white p-6 border-b flex justify-between items-center shadow-sm dark:bg-slate-900">
         <div className="flex items-center gap-3 dark:text-slate-200">
-          <img
-            src={
-              businessData.logo ||
-              "https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
-            }
-            className="w-12 h-12 rounded-full object-cover border-2 border-blue-500"
-            alt="Logo"
-          />
+          <Link to={`/b/${businessData.slug}`}>
+            <img
+              src={
+                businessData.logo ||
+                "https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
+              }
+              className="w-12 h-12 rounded-full object-cover border-2 border-blue-500"
+              alt="Logo"
+            />
+          </Link>
           <div>
             <h2 className="font-bold text-gray-900 leading-none dark:text-slate-200">
-              {businessData.name}
+              <Link to={`/b/${businessData.slug}`}>{businessData.name}</Link>
             </h2>
             {role === "vendor" && (
               <p className="text-xs text-gray-500 mt-1 ">
