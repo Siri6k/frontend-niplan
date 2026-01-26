@@ -33,7 +33,7 @@ const Login = () => {
     const adminNumber = "243899530506";
     const message = `Bonjour Niplan, je souhaite activer ma boutique pour le numéro ${phone}.`;
     const whatsappUrl = `https://wa.me/${adminNumber}?text=${encodeURIComponent(
-      message
+      message,
     )}`;
     window.open(whatsappUrl, "_blank");
     setIsCodeSent(true);
@@ -64,6 +64,7 @@ const Login = () => {
       setError("");
       setStep(2);
       toast.success(res.data.message);
+      sendAdminWhatsAppMessage(normalizedPhoneNumber(phone));
     } catch (err) {
       toast.error("Erreur serveur. Vérifiez le format du numéro.");
     }
@@ -170,7 +171,9 @@ const Login = () => {
             )}
             {isCodeSent ? (
               <button
-                onClick={() => setStep(1)}
+                onClick={() =>
+                  setStep(1) && setIsCodeSent(false) && setError("")
+                }
                 className="w-full text-gray-400 text-xs uppercase tracking-widest"
               >
                 Renvoyer le code
