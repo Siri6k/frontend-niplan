@@ -156,14 +156,14 @@ const Login = () => {
 
             {isCodeSent ? (
               <button
-                onClick={handleVerifyOTP}
+                onClick={() => handleVerifyOTP()}
                 className="w-full bg-black text-white p-4 rounded-2xl font-bold"
               >
                 Valider et Entrer
               </button>
             ) : (
               <button
-                onClick={() => sendAdminWhatsAppMessage(phone)}
+                onClick={() => setStep(1)}
                 className="w-full bg-green-400 text-gray-700 p-4 rounded-2xl font-bold flex items-center justify-center gap-2 dark:bg-slate-700 dark:text-slate-300"
               >
                 Renouveler code WhatsApp 📲
@@ -171,9 +171,7 @@ const Login = () => {
             )}
             {isCodeSent ? (
               <button
-                onClick={() =>
-                  setStep(1) && setIsCodeSent(false) && setError("")
-                }
+                onClick={() => setStep(1)}
                 className="w-full text-gray-400 text-xs uppercase tracking-widest"
               >
                 Renvoyer le code
