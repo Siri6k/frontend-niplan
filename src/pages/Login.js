@@ -41,6 +41,7 @@ const Login = () => {
   // --- 2. ÉTAPE 1 : ENVOI MESSAGE WHATSAPP ---
   const receiveOtp = async () => {
     setCode("");
+    setError("");
     setIsCodeSent(false);
     if (!phone) {
       toast.error("Veuillez entrer un numéro WhatsApp valide.");
