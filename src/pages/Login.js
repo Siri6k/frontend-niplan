@@ -64,8 +64,7 @@ const Login = () => {
       // ON RÉINITIALISE LE CODE ET ON PASSE À L'ÉTAPE 2
       setError("");
       setStep(2);
-      toast.success(res.data.message);
-      sendAdminWhatsAppMessage(normalizedPhoneNumber(phone));
+      setIsCodeSent(true);
     } catch (err) {
       toast.error("Erreur serveur. Vérifiez le format du numéro.");
     }
@@ -172,7 +171,9 @@ const Login = () => {
             )}
             {isCodeSent ? (
               <button
-                onClick={() => setStep(1)}
+                onClick={() =>
+                  sendAdminWhatsAppMessage(normalizedPhoneNumber(phone))
+                }
                 className="w-full text-gray-400 text-xs uppercase tracking-widest"
               >
                 Renvoyer le code
