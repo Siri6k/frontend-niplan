@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Home, ShoppingBag, User, Sun, Moon } from "lucide-react"; // Ajout icones
+import { Outlet } from "react-router-dom";
 
 const Layout = ({ children }) => {
   const location = useLocation();

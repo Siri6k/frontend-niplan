@@ -6,7 +6,6 @@ import {
   Package,
   LogOut,
   Settings,
-  Shop,
   Check,
   Share2,
   Settings2Icon,

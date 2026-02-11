@@ -1,13 +1,14 @@
 {
   "name": "frontend",
   "version": "0.1.0",
+  "type": "module",
   "private": true,
   "dependencies": {
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.1",
     "@testing-library/user-event": "^14.6.1",
-    "autoprefixer": "^10.4.23",
+    "autoprefixer": "^10.4.24",
     "axios": "^1.13.2",
     "eslint": "^10.0.0",
     "framer-motion": "^12.23.27",
@@ -17,14 +18,13 @@
     "react-dom": "^19.2.3",
     "react-hot-toast": "^2.6.0",
     "react-router-dom": "^7.11.0",
-    "react-scripts": "^5.0.1",
     "web-vitals": "^5.1.0"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "start": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "vercel-build": "yarn run build"
   },
   "eslintConfig": {
     "extends": [
@@ -45,10 +45,14 @@
     ]
   },
   "devDependencies": {
-    "eslint-config-react-app": "^7.0.1",
+    "@tailwindcss/postcss": "^4.1.18",
+    "@tailwindcss/vite": "^4.1.18",
+    "@vitejs/plugin-react": "^5.1.4",
     "eslint-plugin-import": "2.32.0",
     "eslint-plugin-jsx-a11y": "^6.8.0",
     "eslint-plugin-react": "^7.34.1",
-    "eslint-plugin-react-hooks": "^7.0.1"
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "tailwindcss": "^4.1.18",
+    "vite": "^7.3.1"
   }
 }

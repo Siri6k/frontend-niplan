@@ -1,7 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, [data-theme=dark]) *);
 /* Tu peux laisser tes styles perso (comme no-scrollbar) en dessous */
 .no-scrollbar::-webkit-scrollbar {
   display: none;

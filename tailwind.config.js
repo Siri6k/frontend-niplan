@@ -1,7 +1,7 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
-  darkMode: "class", // <--- AJOUTE CETTE LIGNE ABSOLUMENT
-  content: ["./src/**/*.{js,jsx,ts,tsx}"],
+export default {
+  darkMode: "selector", // active le mode sombre basé sur la classe ".dark"
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {},
   },
