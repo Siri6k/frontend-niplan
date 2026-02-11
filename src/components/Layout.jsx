@@ -7,25 +7,35 @@ const Layout = ({ children }) => {
   const location = useLocation();
   const [isDark, setIsDark] = useState(false);
 
-  // --- LOGIQUE MODE SOMBRE ---
+  // --- LOGIQUE MODE SOMBRE INTELLIGENTE ---
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
-    if (savedTheme === "dark") {
-      setIsDark(true);
-      document.documentElement.classList.add("dark");
+
+    // 1. On vérifie si un choix existe déjà
+    if (savedTheme) {
+      const isDarkTheme = savedTheme === "dark";
+      setIsDark(isDarkTheme);
+      document.documentElement.classList.toggle("dark", isDarkTheme);
+    }
+    // 2. Sinon, on regarde la préférence du système (Browser/OS)
+    else {
+      const prefersDark = window.matchMedia(
+        "(prefers-color-scheme: dark)",
+      ).matches;
+      setIsDark(prefersDark);
+      document.documentElement.classList.toggle("dark", prefersDark);
     }
   }, []);
 
   const toggleTheme = () => {
-    if (isDark) {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-      setIsDark(false);
-    } else {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-      setIsDark(true);
-    }
+    setIsDark((prev) => {
+      const nextMode = !prev;
+      // On applique le changement au DOM
+      document.documentElement.classList.toggle("dark", nextMode);
+      // On enregistre le choix pour les prochaines visites
+      localStorage.setItem("theme", nextMode ? "dark" : "light");
+      return nextMode;
+    });
   };
   // 1. Vérifier si l'utilisateur est connecté
   const isAuthenticated = !!localStorage.getItem("access_token");

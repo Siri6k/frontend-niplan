@@ -1,6 +1,8 @@
 @import "tailwindcss";
-@custom-variant dark (&:where(.dark, [data-theme=dark]) *);
-/* Tu peux laisser tes styles perso (comme no-scrollbar) en dessous */
+
+/* Configuration Dark Mode (si Tailwind v4) */
+
+/* --- Custom Styles --- */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -8,6 +10,7 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
 @keyframes scrollUp {
   0% {
     transform: translateY(0);
@@ -18,4 +21,24 @@
 }
 .animate-scroll {
   animation: scrollUp 10s linear infinite;
+}
+
+/* --- Theme Animations --- */
+@keyframes icon-pop {
+  0% {
+    transform: scale(0.5) rotate(-45deg);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) rotate(0);
+    opacity: 1;
+  }
+}
+.animate-icon {
+  animation: icon-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+html,
+body {
+  transition: background-color 0.3s ease;
 }
