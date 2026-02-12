@@ -97,7 +97,7 @@ const Home = () => {
     <div className="min-h-screen">
       {/* TEASER - Position corrigée */}
       {showTeaser && !isAuthenticated && (
-        <div className="fixed bottom-35 left-0 right-0 z-40 px-4 animate-in slide-in-from-bottom duration-500">
+        <div className="fixed bottom-22 left-0 right-0 z-40 px-4 animate-in slide-in-from-bottom duration-500">
           <div className="relative max-w-md mx-auto bg-white dark:bg-slate-900 rounded-2xl shadow-2xl overflow-hidden border border-gray-200 dark:border-slate-800">
             {/* Barre de progression - Intégrée dans le composant */}
             <div className="h-1 bg-gray-100 dark:bg-slate-800">
