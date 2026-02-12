@@ -272,8 +272,8 @@ export const StatusTeaser = () => {
   const scrollingItems = [...demoImages, ...demoImages];
 
   return (
-    <div className="bg-gray-50 py-10 px-6 rounded-3xl my-1 border-2 border-dashed border-green-200 overflow-hidden dark:bg-slate-800 dark:border-green-700">
-      <h3 className="text-center font-bold text-xl mb-6 text-gray-800 dark:text-slate-200">
+    <div className="bg-gray-50 py-10 px-6 mb-12 rounded-3xl my-1 border-2 border-dashed border-green-200 overflow-hidden dark:bg-slate-800 dark:border-green-700">
+      <h3 className="text-center font-bold text-xl mb-3 text-gray-800 dark:text-slate-200">
         Fini les captures d'écran désordonnées !
       </h3>
 
@@ -329,9 +329,9 @@ export const StatusTeaser = () => {
         </div>
       </div>
 
-      <p className="text-center text-gray-500 text-sm mt-8 px-4">
+      <p className="text-center text-gray-500 text-sm mt-3 px-4 dark:text-slate-400">
         Vos clients parcourent vos produits comme dans une{" "}
-        <span className="font-bold text-green-600">vraie application</span>.
+        <span className="font-bold text-green-600 ">vraie application</span>.
       </p>
     </div>
   );
