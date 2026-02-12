@@ -9,7 +9,7 @@ import {
 } from "../components/HomeComponents";
 
 const TEASER_DELAY = 500;
-const TEASER_DURATION = 30000;
+const TEASER_DURATION = 5000;
 const PROGRESS_INTERVAL = 100;
 
 const Home = () => {

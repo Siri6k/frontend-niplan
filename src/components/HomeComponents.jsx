@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useCallback, memo } from "react";
+import { MapPin, MessageCircle, Heart, Eye } from "lucide-react";
+
 import { Link } from "react-router-dom";
-import { MapPin, MessageCircle } from "lucide-react";
 
 export const Hero = () => {
   // On vérifie si le token existe
@@ -59,78 +60,205 @@ export const Categories = () => {
   );
 };
 
-export const ProductGrid = ({ products }) => {
-  const handleWhatsAppOrder = (product) => {
-    // Numéro du vendeur (doit être au format international sans le +)
-    const phone = product.vendeur_phone || "243899530506";
+// Skeleton loader pour le chargement
+export const ProductSkeleton = () => (
+  <div className="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-sm animate-pulse">
+    <div className="w-full h-44 bg-gray-200 dark:bg-slate-800" />
+    <div className="p-3 space-y-2">
+      <div className="h-4 bg-gray-200 dark:bg-slate-800 rounded w-3/4" />
+      <div className="h-6 bg-gray-200 dark:bg-slate-800 rounded w-1/2" />
+      <div className="h-3 bg-gray-200 dark:bg-slate-800 rounded w-full" />
+    </div>
+  </div>
+);
 
-    // Message personnalisé avec le nom et le prix du produit
-    const message = `Bonjour, je suis intéressé par votre produit : *${product.name}* au prix de ${product.price} ${product.currency}. Est-il toujours disponible ?\n\n_Vu sur Niplan Market_\n\n${product.image}`;
+const ProductCard = memo(
+  ({ product, onOrder, onToggleFavorite, isFavorite }) => {
+    const {
+      id,
+      name,
+      price,
+      currency,
+      image,
+      location,
+      business_name,
+      vendeur_phone,
+      views = 0,
+      is_new = false,
+    } = product;
 
-    // Génération du lien WhatsApp
-    const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(
-      message,
-    )}`;
+    const phone = vendeur_phone || "243899530506";
 
-    // Ouverture dans un nouvel onglet
-    window.open(whatsappUrl, "_blank");
-  };
+    const handleWhatsAppClick = useCallback(
+      (e) => {
+        e.stopPropagation();
+        onOrder(product);
+      },
+      [onOrder, product],
+    );
 
-  return (
-    <div className="grid grid-cols-2 gap-4 p-4 ">
-      {products.map((product) => (
+    const handleCardClick = useCallback(() => {
+      // Navigation vers détail produit (à implémenter)
+      // navigate(`/product/${id}`);
+      onOrder(product); // Pour l'instant garde le comportement actuel
+    }, [onOrder, product, id]);
+
+    return (
+      <article className="group bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg dark:shadow-none dark:hover:shadow-2xl dark:hover:shadow-slate-950/50 transition-all duration-300 border border-gray-100 dark:border-slate-800 flex flex-col">
+        {/* Image Container */}
         <div
-          key={product.id}
-          onClick={() => handleWhatsAppOrder(product)} // Toute la carte est cliquable
-          className="bg-white rounded-2xl overflow-hidden shadow-sm  active:scale-95 transition-transform cursor-pointer dark:bg-slate-900"
+          className="relative w-full aspect-[4/3] bg-gray-100 dark:bg-slate-800 overflow-hidden cursor-pointer"
+          onClick={handleCardClick}
         >
-          {/* Image du produit */}
-          <div className="w-full h-44 bg-gray-100">
-            <img
-              src={product.image}
-              alt={product.name}
-              className="w-full h-full object-cover"
-            />
-          </div>
+          <img
+            src={image || "/placeholder-product.jpg"}
+            alt={name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            loading="lazy"
+          />
 
-          {/* Infos du produit */}
-          <div className="p-3">
-            <h3 className="font-bold text-sm text-gray-800 truncate mb-1 dark:text-slate-200">
-              {product.name}
-            </h3>
+          {/* Badge Nouveau */}
+          {is_new && (
+            <span className="absolute top-2 left-2 bg-accent text-white text-[10px] font-bold px-2 py-1 rounded-full">
+              NOUVEAU
+            </span>
+          )}
 
-            <p className="text-green-600 font-black text-lg mb-1">
-              {product.price} {product.currency}
-            </p>
+          {/* Bouton Favori */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleFavorite?.(id);
+            }}
+            className={`absolute top-2 right-2 p-2 rounded-full backdrop-blur-md transition-all duration-200 ${
+              isFavorite
+                ? "bg-red-500 text-white"
+                : "bg-white/90 dark:bg-slate-900/90 text-gray-400 hover:text-red-500"
+            }`}
+            aria-label={
+              isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"
+            }
+          >
+            <Heart size={16} fill={isFavorite ? "currentColor" : "none"} />
+          </button>
 
-            <div className="flex flex-col gap-1">
-              {/* Localisation */}
-              <div className="flex items-center text-[10px] text-gray-500 gap-1">
-                <MapPin size={10} className="text-red-400" />
-                <span className="truncate">
-                  {(product.location && product.location + ", RDC") ||
-                    "Lubumbashi, RDC"}
-                </span>
-              </div>
+          {/* Overlay au hover */}
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
 
-              {/* Nom du Business */}
-              <p className="text-[9px] text-gray-400 uppercase tracking-wider font-semibold">
-                Boutique : {product.business_name}
-              </p>
-            </div>
-
-            {/* Bouton d'action visuel */}
-            <div className="mt-3 bg-green-50 text-green-600 py-1.5 rounded-lg flex items-center justify-center gap-1 text-[10px] font-bold hover:bg-green-100 transition-colors">
-              <MessageCircle size={12} />
-              Commander
-            </div>
+          {/* Compteur vues */}
+          <div className="absolute bottom-2 right-2 flex items-center gap-1 text-white text-[10px] bg-black/50 backdrop-blur-sm px-2 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+            <Eye size={12} />
+            {views}
           </div>
         </div>
+
+        {/* Content */}
+        <div className="p-3 flex flex-col flex-1">
+          {/* Nom */}
+          <h3
+            className="font-semibold text-sm text-gray-900 dark:text-slate-100 line-clamp-2 mb-1 group-hover:text-accent transition-colors cursor-pointer"
+            onClick={handleCardClick}
+          >
+            {name}
+          </h3>
+
+          {/* Prix */}
+          <div className="flex items-baseline gap-1 mb-2">
+            <span className="text-lg font-black text-green-600 dark:text-green-400">
+              {price?.toLocaleString()}
+            </span>
+            <span className="text-xs font-medium text-green-600/70 dark:text-green-400/70">
+              {currency}
+            </span>
+          </div>
+
+          {/* Meta info */}
+          <div className="space-y-1.5 mb-3">
+            {/* Localisation */}
+            <div className="flex items-center text-xs text-gray-500 dark:text-slate-400 gap-1.5">
+              <MapPin size={12} className="text-red-400 shrink-0" />
+              <span className="truncate">
+                {location ? `${location}, RDC` : "Lubumbashi, RDC"}
+              </span>
+            </div>
+
+            {/* Business */}
+            <p className="text-[10px] text-gray-400 dark:text-slate-500 uppercase tracking-wider font-medium truncate">
+              {business_name}
+            </p>
+          </div>
+
+          {/* Bouton Commander */}
+          <button
+            onClick={handleWhatsAppClick}
+            className="mt-auto w-full bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-500 text-white py-2.5 rounded-xl flex items-center justify-center gap-2 text-xs font-bold transition-all duration-200 active:scale-95 shadow-sm hover:shadow-md dark:shadow-none"
+          >
+            <MessageCircle size={14} />
+            Commander
+          </button>
+        </div>
+      </article>
+    );
+  },
+);
+
+ProductCard.displayName = "ProductCard";
+
+export const ProductGrid = ({
+  products,
+  isLoading = false,
+  favorites = [],
+  onToggleFavorite,
+  emptyMessage = "Aucun produit disponible",
+}) => {
+  const handleWhatsAppOrder = useCallback((product) => {
+    const phone = product.vendeur_phone || "243899530506";
+    const message = `Bonjour, je suis intéressé par votre produit : *${product.name}* au prix de ${product.price?.toLocaleString()} ${product.currency}.\n\nEst-il toujours disponible ?\n\n_Vu sur Niplan Market_`;
+
+    const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 p-4 max-w-7xl mx-auto">
+        {[...Array(8)].map((_, i) => (
+          <ProductSkeleton key={i} />
+        ))}
+      </div>
+    );
+  }
+
+  if (!products?.length) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+        <div className="w-24 h-24 bg-gray-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
+          <ShoppingBag
+            size={40}
+            className="text-gray-400 dark:text-slate-600"
+          />
+        </div>
+        <p className="text-gray-500 dark:text-slate-400 text-lg font-medium">
+          {emptyMessage}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 p-4 max-w-7xl mx-auto">
+      {products.map((product) => (
+        <ProductCard
+          key={product.id}
+          product={product}
+          onOrder={handleWhatsAppOrder}
+          onToggleFavorite={onToggleFavorite}
+          isFavorite={favorites.includes(product.id)}
+        />
       ))}
     </div>
   );
 };
-
 export const StatusTeaser = () => {
   // Liste d'images d'exemple (Produits typiques : Téléphone, Mode, Wax, Électronique)
   const demoImages = [
