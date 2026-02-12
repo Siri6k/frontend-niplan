@@ -215,8 +215,17 @@ export const ProductGrid = ({
     const phone = product.vendeur_phone || "243899530506";
     const message = `Bonjour, je suis intéressé par votre produit : *${product.name}* au prix de ${product.price?.toLocaleString()} ${product.currency}.\n\nEst-il toujours disponible ?\n\n_Vu sur Niplan Market_`;
 
-    const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+    // Utilisation de window.location pour Safari
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+
+    // Safari préfère cette méthode pour ouvrir les liens
+    const a = document.createElement("a");
+    a.href = url;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   }, []);
 
   if (isLoading) {

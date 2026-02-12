@@ -37,25 +37,3 @@
   }
 }
 
-
-
-// vite.config.js
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import tailwindcss from '@tailwindcss/vite';
-import legacy from '@vitejs/plugin-legacy';
-
-export default defineConfig({
-  plugins: [
-    legacy({
-      targets: ['defaults', 'not IE 11', 'Safari >= 12'],
-      additionalLegacyPolyfills: ['regenerator-runtime/runtime'],
-      modernPolyfills: true,
-    }),
-    react(),
-    tailwindcss(),
-  ],
-  build: {
-    target: 'es2015',
-  },
-});
