@@ -155,12 +155,22 @@ const Home = () => {
         <ProductGrid products={products} />
       ) : (
         <div className="px-4 py-12 text-center text-text-secondary">
-          Aucun produit disponible pour le moment !
+          Aucun produit disponible pour le moment <br />
+          <Link
+            to={`https://wa.me/243899530506?text=${encodeURIComponent(
+              "Bonjour, je souhaite signaler que je n'ai vu aucun produit sur Niplan Market. Pouvez-vous m'aider ?",
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-white mt-4 text-green-700 px-6 py-3 rounded-full font-bold shadow-lg inline-block"
+          >
+            <i className="fab fa-whatsapp mr-1"></i> Contactez nous sur WhatsApp
+          </Link>
         </div>
       )}
 
       {/* Footer */}
-      <footer className="py-8 text-center border-t border-gray-200 dark:border-slate-800 mt-8">
+      <footer className="py-4 pb-1 text-center border-t border-gray-200 dark:border-slate-800 mt-3">
         <p className="text-sm text-text-secondary">
           © {new Date().getFullYear()} Niplan - Marketplace RDC
         </p>
