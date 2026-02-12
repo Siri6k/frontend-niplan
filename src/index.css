@@ -1,6 +1,52 @@
 @import "tailwindcss";
 
-/* Configuration Dark Mode (si Tailwind v4) */
+/* Configuration du dark mode */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Définition de tes couleurs personnalisées */
+@theme {
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+}
+
+/* Variables CSS pour light mode (défaut) */
+:root {
+  --bg-primary: #f9fafb;
+  --bg-secondary: #ffffff;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --accent: #2563eb;
+  --accent-foreground: #ffffff;
+}
+
+/* Variables pour dark mode */
+.dark {
+  --bg-primary: #020617;
+  --bg-secondary: #0f172a;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --accent: #60a5fa;
+  --accent-foreground: #0f172a;
+}
+
+/* PAS DE TRANSITION sur html/body - ça cause le flash */
+/* Supprime ça :
+html, body {
+  transition: background-color 0.3s ease;
+}
+*/
+
+/* Transition uniquement sur les éléments internes */
+.transition-theme {
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease;
+}
 
 /* --- Custom Styles --- */
 .no-scrollbar::-webkit-scrollbar {
@@ -23,7 +69,6 @@
   animation: scrollUp 10s linear infinite;
 }
 
-/* --- Theme Animations --- */
 @keyframes icon-pop {
   0% {
     transform: scale(0.5) rotate(-45deg);
@@ -36,9 +81,4 @@
 }
 .animate-icon {
   animation: icon-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-html,
-body {
-  transition: background-color 0.3s ease;
 }
