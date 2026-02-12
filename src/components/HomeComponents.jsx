@@ -212,7 +212,7 @@ export const ProductGrid = ({
   emptyMessage = "Aucun produit disponible",
 }) => {
   const handleWhatsAppOrder = useCallback((product) => {
-    const phone = product.vendeur_phone || "243899530506";
+    const phone = product.vendor_phone || "243899530506";
     const message = `Bonjour, je suis intéressé par votre produit : *${product.name}* au prix de ${product.price?.toLocaleString()} ${product.currency}.\n\nEst-il toujours disponible ?\n\n_Vu sur Niplan Market_`;
 
     // Utilisation de window.location pour Safari
