@@ -31,6 +31,13 @@ const Spinner = () => (
   <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
 );
 
+const AVATAR_URLS = [
+  "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face",
+  "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face",
+  "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",
+  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
+];
+
 const Login = () => {
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
@@ -180,16 +187,19 @@ const Login = () => {
 
           <div className="flex items-center gap-4 pt-4">
             <div className="flex -space-x-3">
-              {[1, 2, 3, 4].map((i) => (
-                <div
+              {AVATAR_URLS.map((url, i) => (
+                <img
                   key={i}
-                  className="w-10 h-10 rounded-full bg-gray-300 border-2 border-white dark:border-slate-800"
+                  src={url}
+                  alt={`Vendeur ${i + 1}`}
+                  className="w-10 h-10 rounded-full border-2 border-white dark:border-slate-800 object-cover"
+                  loading="lazy"
                 />
               ))}
             </div>
             <p className="text-sm text-gray-600 dark:text-slate-400">
               <span className="font-bold text-gray-900 dark:text-white">
-                1,200+
+                100+
               </span>{" "}
               vendeurs ce mois
             </p>
