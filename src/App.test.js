@@ -1,349 +1,53 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import {
-  MessageCircle,
-  ArrowLeft,
-  Shield,
-  Users,
-  Zap,
-  Lock,
-} from "lucide-react";
-import api from "../api";
-import toast from "react-hot-toast";
-import { isValidPhoneNumber, normalizedPhoneNumber } from "../utils/Constants";
-import PhoneInput from "../components/PhoneInput";
-
-const STEPS = {
-  PHONE: 1,
-  VERIFY: 2,
-  SUCCESS: 3,
-};
-
-const FEATURES = [
-  { icon: Zap, text: "Mise en ligne en 2 minutes" },
-  { icon: Users, text: "+500 vendeurs actifs" },
-  { icon: Shield, text: "Paiements sécurisés" },
-];
-
-const Spinner = () => (
-  <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-);
-
-const Login = () => {
-  const [phone, setPhone] = useState("");
-  const [code, setCode] = useState("");
-  const [step, setStep] = useState(STEPS.PHONE);
-  const [isLoading, setIsLoading] = useState(false);
-  const [countdown, setCountdown] = useState(0);
-  const [error, setError] = useState("");
-
-  const navigate = useNavigate();
-  const inputRef = useRef(null);
-
-  useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    if (token) navigate("/dashboard", { replace: true });
-  }, [navigate]);
-
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, [step]);
-
-  useEffect(() => {
-    if (countdown > 0) {
-      const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [countdown]);
-
-  const validateInternationalPhone = (phoneNumber) => {
-    const cleaned = phoneNumber.replace(/\s/g, "");
-    return /^\+[1-9]\d{7,14}$/.test(cleaned);
-  };
-
-  const handleCodeChange = (e) => {
-    const value = e.target.value.replace(/\D/g, "").slice(0, 6);
-    setCode(value);
-    setError("");
-
-    if (value.length === 6) {
-      setTimeout(() => handleVerify(value), 300);
-    }
-  };
-
-  const receiveOtp = async () => {
-    const cleanPhone = phone.replace(/\s/g, "");
-
-    if (!validateInternationalPhone(cleanPhone)) {
-      toast.error("Numéro international invalide");
-      setError("Format: +XXX XXXXXXXXX");
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      await api.post("/auth/request-otp/", {
-        phone_whatsapp: normalizedPhoneNumber(cleanPhone),
-      });
-
-      setStep(STEPS.VERIFY);
-      setCountdown(60);
-      toast.success(
-        `Code envoyé au ${cleanPhone.slice(0, 6)}...${cleanPhone.slice(-4)}`,
-      );
-    } catch (err) {
-      toast.error("Erreur lors de l'envoi. Réessayez.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleVerify = async (verificationCode = code) => {
-    if (verificationCode.length !== 6) return;
-
-    setIsLoading(true);
-    try {
-      const res = await api.post("/auth/verify-otp/", {
-        phone_whatsapp: phone.replace(/\s/g, ""),
-        code: verificationCode,
-      });
-
-      const { access, refresh, business_slug, role } = res.data;
-      localStorage.setItem("access_token", access);
-      localStorage.setItem("refresh_token", refresh);
-      localStorage.setItem("business_slug", business_slug);
-      localStorage.setItem("role", role);
-
-      setStep(STEPS.SUCCESS);
-
-      setTimeout(() => {
-        navigate("/dashboard");
-        toast.success("Bienvenue sur Niplan ! 🎉");
-      }, 1500);
-    } catch (err) {
-      toast.error("Code incorrect");
-      setError("Code invalide. Vérifiez WhatsApp.");
-      setCode("");
-      inputRef.current?.focus();
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const resendCode = async () => {
-    if (countdown > 0) return;
-    await receiveOtp();
-  };
-
-  const goBack = () => {
-    setStep(STEPS.PHONE);
-    setCode("");
-    setError("");
-  };
+const ProductList = ({ products, onEdit, onDelete }) => {
+  if (!products.length) {
+    return (
+      <div className="text-center py-12 text-gray-400">
+        <p>Aucun produit encore.</p>
+        <p className="text-sm">Ajoutez votre premier produit !</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-950 dark:to-slate-900 flex items-center justify-center p-4 sm:p-6">
-      {/* ✅ max-w-full sur mobile, max-w-5xl sur desktop */}
-      <div className="w-full max-w-full sm:max-w-lg lg:max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-center">
-        
-        {/* Côté gauche - Marketing (caché sur mobile et tablet) */}
-        <div className="hidden lg:flex flex-col space-y-6 xl:space-y-8 p-4 xl:p-8">
-          <div>
-            <h1 className="text-3xl xl:text-4xl font-black text-gray-900 dark:text-white mb-4">
-              Vendez sur <span className="text-green-600">Niplan</span>
-            </h1>
-            <p className="text-base xl:text-lg text-gray-600 dark:text-slate-400">
-              La marketplace #1 en RDC. Rejoignez +500 vendeurs qui gagnent déjà
-              de l'argent.
+    <div className="space-y-3">
+      {products.map((product) => (
+        <div
+          key={product.id}
+          className="flex items-center gap-4 p-3 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border dark:border-slate-800"
+        >
+          <img
+            src={product.image}
+            alt={product.name}
+            className="w-16 h-16 rounded-xl object-cover bg-gray-100"
+            loading="lazy"
+          />
+          <div className="flex-1 min-w-0">
+            <h3 className="font-bold text-sm text-gray-800 dark:text-slate-200 truncate">
+              {product.name}
+            </h3>
+            <p className="text-blue-600 font-bold">
+              {product.price} {product.currency}
             </p>
+            <p className="text-xs text-gray-400 truncate">{product.location}</p>
           </div>
-
-          <div className="space-y-3 xl:space-y-4">
-            {FEATURES.map(({ icon: Icon, text }) => (
-              <div
-                key={text}
-                className="flex items-center gap-3 text-gray-700 dark:text-slate-300"
-              >
-                <div className="w-9 h-9 xl:w-10 xl:h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center shrink-0">
-                  <Icon size={18} className="text-green-600" />
-                </div>
-                <span className="font-medium text-sm xl:text-base">{text}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-4 pt-4">
-            <div className="flex -space-x-3">
-              {[1, 2, 3, 4].map((i) => (
-                <div
-                  key={i}
-                  className="w-9 h-9 xl:w-10 xl:h-10 rounded-full bg-gray-300 border-2 border-white dark:border-slate-800"
-                />
-              ))}
-            </div>
-            <p className="text-sm text-gray-600 dark:text-slate-400">
-              <span className="font-bold text-gray-900 dark:text-white">
-                1,200+
-              </span>{" "}
-              vendeurs ce mois
-            </p>
+          <div className="flex gap-1">
+            <button
+              onClick={() => onEdit(product)}
+              className="p-2 text-green-600 hover:bg-green-50 rounded-lg"
+            >
+              <Edit2 size={16} />
+            </button>
+            <button
+              onClick={() => onDelete(product.slug)}
+              className="p-2 text-red-400 hover:bg-red-50 rounded-lg"
+            >
+              <Trash2 size={16} />
+            </button>
           </div>
         </div>
-
-        {/* Côté droit - Formulaire */}
-        {/* ✅ w-full, max-w garanti, padding réduit sur mobile */}
-        <div className="w-full max-w-full sm:max-w-md mx-auto lg:max-w-none bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl shadow-xl sm:shadow-2xl p-5 sm:p-8 border border-gray-100 dark:border-slate-800">
-          
-          {/* Header avec étapes */}
-          <div className="mb-6 sm:mb-8">
-            <div className="flex items-center justify-between mb-4 sm:mb-6">
-              {step === STEPS.VERIFY && (
-                <button
-                  onClick={goBack}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full transition-colors"
-                >
-                  <ArrowLeft size={20} className="text-gray-500" />
-                </button>
-              )}
-              <div className="flex gap-2 mx-auto">
-                {[1, 2].map((i) => (
-                  <div
-                    key={i}
-                    className={`w-6 sm:w-8 h-1.5 rounded-full transition-colors ${
-                      i <= step
-                        ? "bg-green-500"
-                        : "bg-gray-200 dark:bg-slate-700"
-                    }`}
-                  />
-                ))}
-              </div>
-              {step === STEPS.VERIFY && <div className="w-10" />}
-            </div>
-
-            <div className="text-center">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-green-100 dark:bg-green-900/30 rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                {step === STEPS.PHONE ? (
-                  <MessageCircle size={24} className="text-green-600 sm:w-7 sm:h-7" />
-                ) : step === STEPS.VERIFY ? (
-                  <Lock size={24} className="text-blue-600 sm:w-7 sm:h-7" />
-                ) : (
-                  <Zap size={24} className="text-yellow-500 sm:w-7 sm:h-7" />
-                )}
-              </div>
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-                {step === STEPS.PHONE && "Connexion sécurisée"}
-                {step === STEPS.VERIFY && "Vérifiez WhatsApp"}
-                {step === STEPS.SUCCESS && "C'est parti !"}
-              </h2>
-              <p className="text-gray-500 dark:text-slate-400 mt-1 sm:mt-2 text-sm">
-                {step === STEPS.PHONE &&
-                  "Entrez votre numéro pour recevoir le code"}
-                {step === STEPS.VERIFY && `Code envoyé à ${phone}`}
-              </p>
-            </div>
-          </div>
-
-          {/* Formulaire Étape 1 */}
-          {step === STEPS.PHONE && (
-            <div className="space-y-3 sm:space-y-4">
-              <PhoneInput
-                value={phone}
-                onChange={setPhone}
-                error={error}
-                disabled={isLoading}
-              />
-
-              {error && (
-                <p className="text-xs sm:text-sm text-red-500 text-center animate-pulse">
-                  {error}
-                </p>
-              )}
-
-              <button
-                onClick={receiveOtp}
-                disabled={isLoading || phone.length < 10}
-                className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3.5 sm:py-4 rounded-xl sm:rounded-2xl font-bold text-base sm:text-lg transition-all flex items-center justify-center gap-2"
-              >
-                {isLoading ? <Spinner /> : (
-                  <>
-                    Continuer
-                    <span className="text-green-200">→</span>
-                  </>
-                )}
-              </button>
-
-              <p className="text-[10px] sm:text-xs text-center text-gray-400 dark:text-slate-500 px-2">
-                En continuant, vous acceptez nos CGU et Politique de confidentialité
-              </p>
-            </div>
-          )}
-
-          {/* Formulaire Étape 2 */}
-          {step === STEPS.VERIFY && (
-            <div className="space-y-4 sm:space-y-6">
-              <div className="relative">
-                <input
-                  ref={inputRef}
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="• • • • • •"
-                  className="w-full px-4 py-3.5 sm:py-4 bg-gray-50 dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-700 rounded-xl sm:rounded-2xl outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-all text-center text-2xl sm:text-3xl font-mono tracking-[0.3em] sm:tracking-[0.5em] text-gray-900 dark:text-white"
-                  value={code}
-                  onChange={handleCodeChange}
-                  disabled={isLoading}
-                  autoComplete="one-time-code"
-                />
-                {isLoading && (
-                  <div className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2">
-                    <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
-                  </div>
-                )}
-              </div>
-
-              {error && (
-                <p className="text-xs sm:text-sm text-red-500 text-center">{error}</p>
-              )}
-
-              <div className="text-center space-y-2 sm:space-y-3">
-                {countdown > 0 ? (
-                  <p className="text-xs sm:text-sm text-gray-500">
-                    Renvoyer dans{" "}
-                    <span className="font-mono font-bold">{countdown}s</span>
-                  </p>
-                ) : (
-                  <button
-                    onClick={resendCode}
-                    className="text-xs sm:text-sm font-medium text-green-600 hover:text-green-700 underline"
-                  >
-                    Renvoyer le code
-                  </button>
-                )}
-
-                <button
-                  onClick={goBack}
-                  className="block w-full text-[10px] sm:text-xs text-gray-400 hover:text-gray-600"
-                >
-                  Modifier le numéro
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Succès */}
-          {step === STEPS.SUCCESS && (
-            <div className="text-center py-6 sm:py-8">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 animate-bounce">
-                <Zap size={28} className="text-green-600 sm:w-8 sm:h-8" />
-              </div>
-              <p className="text-sm sm:text-base text-gray-600 dark:text-slate-400">
-                Redirection en cours...
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
+      ))}
     </div>
   );
 };
 
-export default Login;
+export default ProductList;

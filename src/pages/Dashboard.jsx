@@ -1,229 +1,126 @@
-import React, { useState, useEffect } from "react";
+// pages/Dashboard.jsx
+import { useState, useEffect } from "react";
+import { PlusCircle } from "lucide-react";
+import { Check, Settings2 as Settings2Icon, LogOut } from "lucide-react";
 import api from "../api";
-import {
-  PlusCircle,
-  Trash2,
-  Package,
-  LogOut,
-  Settings,
-  Check,
-  Share2,
-  Settings2Icon,
-  Edit2,
-} from "lucide-react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import BusinessSettings from "../components/BusinessSettings"; // Import du composant de profil
 import toast from "react-hot-toast";
-
-const ShareBusiness = ({ slug }) => {
-  const shopUrl = `${window.location.origin}/b/${slug}`;
-  const navigate = useNavigate();
-
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: "Ma boutique Niplan",
-          text: "Découvrez mes produits sur ma boutique en ligne !",
-          url: shopUrl,
-        });
-      } catch (err) {
-        console.log("Partage annulé");
-      }
-    } else {
-      // Fallback si WebShare API n'est pas dispo (ex: copie lien)
-      navigator.clipboard.writeText(shopUrl);
-      alert("Lien de la boutique copié !");
-    }
-  };
-
-  return (
-    <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-2xl border border-blue-100 dark:border-blue-800 flex items-center justify-between mb-6">
-      <div className="flex-1">
-        <p
-          onClick={() => navigate(`/b/${slug}`)}
-          className="text-[10px] text-blue-600 dark:text-blue-400 font-bold uppercase tracking-wider"
-        >
-          Lien de votre business
-        </p>
-        <p className="text-xs text-gray-500 truncate mr-4">{shopUrl}</p>
-      </div>
-      <button
-        onClick={handleShare}
-        className="bg-blue-600 text-white p-3 rounded-xl shadow-lg active:scale-90 transition-all"
-      >
-        <Share2 size={20} />
-      </button>
-    </div>
-  );
-};
+import ProductList from "../components/ProductList";
+import ProductForm from "../components/ProductForm";
+import ShareBusiness from "../components/ShareBusiness";
+import BusinessCard from "../components/BusinessCard";
+import BusinessInfo from "../components/BusinessInfo";
+import { Link } from "react-router-dom";
 
 const Dashboard = () => {
-  const [view, setView] = useState("products"); // Switch entre 'products' et 'settings'
-  const [myProducts, setMyProducts] = useState([]);
-  const [businessData, setBusinessData] = useState(null);
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newProduct, setNewProduct] = useState({
-    name: "",
-    price: "",
-    description: "",
-    image: null,
-    currency: "USD",
-    location: "Kinshasa, RDC",
-    exchange_for: "",
-  });
-  const [showEditForm, setShowEditForm] = useState(false);
-  const [editProduct, setEditProduct] = useState({});
-  const [editProductSlug, setEditProductSlug] = useState("");
-
+  const [products, setProducts] = useState([]);
+  const [business, setBusiness] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [editingProduct, setEditingProduct] = useState(null); // Stocke le produit entier
   const role = localStorage.getItem("role");
-  const navigate = useNavigate();
 
-  // --- 1. VERIFICATION AUTH & CHARGEMENT INFOS ---
-  useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-      navigate("/login");
-    } else {
-      fetchBusinessInfo();
-      fetchMyProducts();
-    }
-  }, [navigate]);
-
-  useEffect(() => {
-    if (showAddForm) {
-      setEditProductSlug("");
-      setShowEditForm(false);
-    }
-  }, [showAddForm]);
-
-  const fetchBusinessInfo = async () => {
-    try {
-      const res = await api.get("/my-business/update/");
-      setBusinessData(res.data);
-    } catch (err) {
-      console.error("Erreur chargement profil");
-    }
+  const handleEditClick = (product) => {
+    setEditingProduct(product);
+    // Scroll vers le produit
+    setTimeout(() => {
+      document.getElementById(`product-${product.id}`)?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }, 100);
   };
-
-  // Dans Dashboard.js
-  const location = useLocation();
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    if (params.get("tab") === "settings") {
-      setView("settings");
-    }
-  }, [location]);
-
-  const fetchMyProducts = async () => {
-    try {
-      const res = await api.get("/my-products/");
-      setMyProducts(res.data);
-    } catch (err) {
-      console.error("Erreur chargement produits");
-    }
-  };
-
-  // --- 2. LOGIQUE LOGOUT ---
   const handleLogout = () => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
-    localStorage.removeItem("business_slug");
     localStorage.removeItem("role");
-    navigate("/login");
+    window.location.href = "/login";
+  };
+  const handleSaveEdit = async (slug, formData, isImageChanged) => {
+    try {
+      await api.patch(`/my-products/${slug}/edit/`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      toast.success("Produit modifié !");
+      setEditingProduct(null);
+      fetchData();
+    } catch (err) {
+      toast.error("Erreur de modification");
+    }
   };
 
-  // --- 3. GESTION PRODUITS ---
-  const handleAddProduct = async (e) => {
-    e.preventDefault();
-    const formData = new FormData();
-    formData.append("name", newProduct.name);
-    formData.append("price", newProduct.price);
-    formData.append("currency", newProduct.currency);
-    formData.append("description", newProduct.description);
-    formData.append("location", newProduct.location);
-    formData.append("image", newProduct.image);
-    if (businessData.business_type === "TROC") {
-      formData.append("exchange_for", newProduct.exchange_for);
-    }
+  useEffect(() => {
+    fetchData();
+  }, []);
 
+  const fetchData = async () => {
+    try {
+      const [businessRes] = await Promise.all([
+        api.get("/my-business/update/"),
+      ]);
+      setBusiness(businessRes.data);
+      setProducts(businessRes.data.products);
+    } catch (err) {
+      toast.error("Erreur de chargement");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAdd = async (formData) => {
     try {
       await api.post("/my-products/create/", formData);
-      setShowAddForm(false);
-      fetchMyProducts();
-      toast.success("Produit ajouté avec succès");
+      toast.success("Produit ajouté !");
+      setShowForm(false);
+      fetchData();
     } catch (err) {
-      toast.error("Erreur lors de l'ajout du produit");
+      toast.error("Erreur lors de l'ajout");
     }
   };
-  const handleEditProduct = (product) => {
-    setShowAddForm(false);
-    // On remplit l'état avec toutes les données actuelles du produit
-    setEditProduct({
-      name: product.name,
-      price: product.price,
-      currency: product.currency,
-      description: product.description,
-      location: product.location,
-      exchange_for: product.exchange_for || "",
-      image: null, // On ne peut pas pré-remplir un input file pour des raisons de sécurité
-    });
-    setEditProductSlug(product.slug);
-    setShowEditForm(true);
-  };
-  const submitEditProduct = async (e) => {
-    e.preventDefault();
-    const formData = new FormData();
-    formData.append("name", editProduct.name);
-    formData.append("price", editProduct.price);
-    formData.append("currency", editProduct.currency);
-    formData.append("description", editProduct.description);
-    formData.append("location", editProduct.location);
-    if (editProduct.image) {
-      formData.append("image", editProduct.image);
-    }
-    if (businessData.business_type === "TROC") {
-      formData.append("exchange_for", editProduct.exchange_for);
-    }
 
+  const handleEdit = async (slug, formData, isImageChanged) => {
     try {
-      await api.patch(`/my-products/${editProductSlug}/edit/`, formData);
-      toast.success("Produit modifié avec succès");
-      setEditProductSlug("");
-      setShowEditForm(false);
-      fetchMyProducts();
-    } catch (err) {
-      toast.error("Erreur lors de la modification du produit");
-    }
-  };
-  const handleDeleteProduct = async (slug) => {
-    if (window.confirm("Supprimer ce produit ?")) {
-      try {
-        await api.delete(`/my-products/${slug}/delete/`);
-        fetchMyProducts();
-        toast.success("Produit supprimé");
-      } catch (err) {
-        toast.error("Erreur lors de la suppression");
+      // Si l'image est supprimée (formData.get("image") === "")
+      const imageValue = formData.get("image");
+
+      if (isImageChanged && !imageValue) {
+        // Optionnel: confirmer la suppression d'image
+        if (!window.confirm("Supprimer l'image du produit ?")) return;
       }
+
+      await api.patch(`/my-products/${slug}/edit/`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      toast.success("Produit modifié !");
+      setEditingProduct(null);
+      fetchData();
+    } catch (err) {
+      toast.error("Erreur lors de la modification");
     }
   };
 
-  if (!businessData)
-    return (
-      <div className="p-10 text-center text-gray-400 dark:text-slate-400">
-        Chargement...
-      </div>
-    );
+  const handleDelete = async (slug) => {
+    if (!window.confirm("Supprimer ce produit ?")) return;
+    try {
+      await api.delete(`/my-products/${slug}/delete/`);
+      toast.success("Produit supprimé");
+      fetchData();
+    } catch (err) {
+      toast.error("Erreur de suppression");
+    }
+  };
+
+  if (isLoading) return <div className="p-8 text-center">Chargement...</div>;
 
   return (
-    <div className="pb-24 max-w-md mx-auto bg-gray-50 min-h-screen dark:bg-slate-950">
+    <div className="p-4 space-y-4 w-full max-w-2xl mx-auto">
       {/* --- HEADER INFOS VENDEUR --- */}
-      <div className="bg-white p-6 border-b flex justify-between items-center shadow-sm dark:bg-slate-900">
+      <div className="p-6 border-b flex justify-between items-center shadow-sm ">
         <div className="flex items-center gap-3 dark:text-slate-200">
-          <Link to={`/b/${businessData.slug}`}>
+          <Link to={`/b/${business.slug}`}>
             <img
               src={
-                businessData.logo ||
+                business.logo ||
                 "https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
               }
               className="w-12 h-12 rounded-full object-cover border-2 border-blue-500"
@@ -232,7 +129,7 @@ const Dashboard = () => {
           </Link>
           <div>
             <h2 className="font-bold text-gray-900 leading-none dark:text-slate-200">
-              <Link to={`/b/${businessData.slug}`}>{businessData.name}</Link>
+              <Link to={`/b/${business.slug}`}>{business.name}</Link>
             </h2>
             {role === "vendor" && (
               <p className="text-xs text-gray-500 mt-1 ">
@@ -261,311 +158,46 @@ const Dashboard = () => {
         </button>
       </div>
 
-      {/* --- MENU NAVIGATION INTERNE --- */}
-      <div className="flex bg-white mb-4 shadow-sm dark:bg-slate-900">
+      {/* Partage */}
+      {business && <ShareBusiness slug={business.slug} />}
+
+      {/* Header */}
+      <div className="flex items-center justify-between w-full max-w-2xl mx-auto">
+        <h1 className="text-lg font-bold text-gray-800 dark:text-slate-200">
+          {products.length} Produit{products.length > 1 ? "s" : ""}
+        </h1>
         <button
-          onClick={() => setView("products")}
-          className={`flex-1 py-4 text-sm font-bold flex justify-center items-center gap-2 ${
-            view === "products"
-              ? "text-blue-600 border-b-2 border-blue-600"
-              : "text-gray-400"
-          }`}
+          onClick={() => {
+            setEditingProduct(null);
+            setShowForm(!showForm);
+          }}
+          className="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2"
         >
-          <Package size={18} />
-          Mes Produits
-        </button>
-        <button
-          onClick={() => setView("settings")}
-          className={`flex-1 py-4 text-sm font-bold flex justify-center items-center gap-2 ${
-            view === "settings"
-              ? "text-blue-600 border-b-2 border-blue-600"
-              : "text-gray-400"
-          }`}
-        >
-          <Settings size={18} /> Mon Profil
+          <PlusCircle size={18} />
+          {showForm ? "Fermer" : "Ajouter"}
         </button>
       </div>
 
-      <div className="p-4">
-        {view === "products" ? (
-          <>
-            {/* Le vendeur peut partager sa boutique publique */}
-            <ShareBusiness slug={businessData.slug} />
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-bold text-gray-700  dark:text-slate-300">
-                {myProducts.length} Articles
-              </h3>
-              <button
-                onClick={() => setShowAddForm(!showAddForm)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2"
-              >
-                <PlusCircle size={18} /> Ajouter
-              </button>
-            </div>
+      {/* Formulaire */}
+      {showForm && (
+        <ProductForm
+          businessType={business?.business_type}
+          onSubmit={handleAdd}
+          onCancel={() => setShowForm(false)}
+        />
+      )}
 
-            {showAddForm && (
-              <form
-                onSubmit={handleAddProduct}
-                className="mb-6 p-4 bg-white border rounded-2xl shadow-sm dark:bg-slate-900"
-              >
-                {businessData.business_type === "TROC" && (
-                  <p className="text-xs text-gray-500 mb-4 text-center dark:text-slate-400">
-                    Vous avez choisi le type "Troc". N'oubliez pas de remplir le
-                    champ "Échange contre" lors de l'ajout d'un produit.
-                  </p>
-                )}
-                <input
-                  type="text"
-                  placeholder="Nom du produit"
-                  required
-                  className="w-full p-3 mb-2 bg-gray-20 rounded-xl dark:bg-slate-800"
-                  onChange={(e) =>
-                    setNewProduct({ ...newProduct, name: e.target.value })
-                  }
-                />
-                {/* Remplace l'ancien input prix par ce groupe */}
-                <div className="flex gap-2 mb-2">
-                  <input
-                    type="number"
-                    step="any"
-                    placeholder="Prix"
-                    required
-                    className="flex-1 p-3 bg-gray-50 rounded-xl dark:bg-slate-800 dark:text-white"
-                    onChange={(e) =>
-                      setNewProduct({ ...newProduct, price: e.target.value })
-                    }
-                  />
-                  <select
-                    className="w-24 p-3 bg-gray-50 rounded-xl border-none font-bold text-blue-400 dark:bg-slate-800"
-                    value={newProduct.currency}
-                    onChange={(e) =>
-                      setNewProduct({ ...newProduct, currency: e.target.value })
-                    }
-                  >
-                    <option value="USD" selected>
-                      USD
-                    </option>
-                    <option value="CDF">CDF</option>
-                  </select>
-                </div>
-                {businessData.business_type === "TROC" && (
-                  <input
-                    type="text"
-                    placeholder="Échange contre"
-                    className="w-full p-3 mb-2 bg-gray-50 rounded-xl dark:bg-slate-800"
-                    onChange={(e) =>
-                      setNewProduct({
-                        ...newProduct,
-                        exchange_for: e.target.value,
-                      })
-                    }
-                  />
-                )}
-                <input
-                  type="text"
-                  placeholder="Ville ou Localisation"
-                  required
-                  className="w-full p-3 mb-2 bg-gray-50 rounded-xl dark:bg-slate-800"
-                  onChange={(e) =>
-                    setNewProduct({ ...newProduct, location: e.target.value })
-                  }
-                />
-                <textarea
-                  placeholder="Description du produit"
-                  className="w-full p-3 mb-2 bg-gray-50 rounded-xl dark:bg-slate-800"
-                  onChange={(e) =>
-                    setNewProduct({
-                      ...newProduct,
-                      description: e.target.value,
-                    })
-                  }
-                />
-                <input
-                  type="file"
-                  accept="image/*"
-                  required
-                  className="w-full mb-4 text-xs text-gray-500 dark:text-slate-400"
-                  onChange={(e) =>
-                    setNewProduct({ ...newProduct, image: e.target.files[0] })
-                  }
-                />
-                <button
-                  type="submit"
-                  className="w-full bg-green-600 text-white py-3 rounded-xl font-bold dark:bg-green-700 hover:bg-green-700 transition-colors"
-                >
-                  Mettre en ligne
-                </button>
-              </form>
-            )}
-
-            <div className="space-y-3">
-              {myProducts.map((p) => (
-                <div key={p.id}>
-                  <div
-                    key={p.id}
-                    id={p.slug}
-                    className="flex items-center gap-4 p-3 bg-white rounded-2xl shadow-sm border border-gray-100 dark:bg-slate-900 dark:border-slate-800"
-                  >
-                    <img
-                      src={p.image}
-                      className="w-16 h-16 rounded-xl object-cover"
-                      alt={p.name}
-                    />
-                    <div className="flex-1">
-                      <h3 className="font-bold text-gray-800 text-sm dark:text-slate-200">
-                        {p.name}
-                      </h3>
-                      <p className="text-blue-600 font-bold">
-                        {p.price} {p.currency}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => handleEditProduct(p)} // On passe l'objet complet 'p'
-                      className="text-green-500 hover:text-green-700 p-2"
-                    >
-                      <Edit2 size={18} />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteProduct(p.slug)}
-                      className="text-red-300 hover:text-red-500 p-2"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
-                  {showEditForm && editProductSlug === p.slug && (
-                    <form
-                      onSubmit={submitEditProduct}
-                      key={p.slug}
-                      className="mb-6 p-4 bg-white border rounded-2xl shadow-sm dark:bg-slate-900"
-                    >
-                      {businessData.business_type === "TROC" && (
-                        <p className="text-xs text-gray-500 mb-4 text-center dark:text-slate-400">
-                          Vous avez choisi le type "Troc". N'oubliez pas de
-                          remplir le champ "Échange contre" lors de l'ajout d'un
-                          produit.
-                        </p>
-                      )}
-                      <input
-                        type="text"
-                        placeholder="Nom du produit"
-                        required
-                        defaultValue={p.name}
-                        className="w-full p-3 mb-2 bg-gray-20 rounded-xl dark:bg-slate-800"
-                        onChange={(e) =>
-                          setEditProduct({
-                            ...editProduct,
-                            name: e.target.value,
-                          })
-                        }
-                      />
-                      {/* Remplace l'ancien input prix par ce groupe */}
-                      <div className="flex gap-2 mb-2">
-                        <input
-                          type="number"
-                          step="any"
-                          placeholder="Prix"
-                          required
-                          defaultValue={p.price}
-                          className="flex-1 p-3 bg-gray-50 rounded-xl dark:bg-slate-800 dark:text-white"
-                          onChange={(e) =>
-                            setEditProduct({
-                              ...editProduct,
-                              price: e.target.value,
-                            })
-                          }
-                        />
-                        <select
-                          className="w-24 p-3 bg-gray-50 rounded-xl border-none font-bold text-blue-400 dark:bg-slate-800"
-                          defaultValue={p.currency}
-                          onChange={(e) =>
-                            setEditProduct({
-                              ...editProduct,
-                              currency: e.target.value,
-                            })
-                          }
-                        >
-                          <option value="USD">USD</option>
-                          <option value="CDF">CDF</option>
-                        </select>
-                      </div>
-                      {businessData.business_type === "TROC" && (
-                        <input
-                          type="text"
-                          placeholder="Échange contre"
-                          defaultValue={p.exchange_for}
-                          className="w-full p-3 mb-2 bg-gray-50 rounded-xl dark:bg-slate-800"
-                          onChange={(e) =>
-                            setEditProduct({
-                              ...editProduct,
-                              exchange_for: e.target.value,
-                            })
-                          }
-                        />
-                      )}
-                      <input
-                        type="text"
-                        placeholder="Ville ou Localisation"
-                        required
-                        defaultValue={p.location}
-                        className="w-full p-3 mb-2 bg-gray-50 rounded-xl dark:bg-slate-800"
-                        onChange={(e) =>
-                          setEditProduct({
-                            ...editProduct,
-                            location: e.target.value,
-                          })
-                        }
-                      />
-                      <textarea
-                        placeholder="Description du produit"
-                        defaultValue={p.description}
-                        className="w-full p-3 mb-2 bg-gray-50 rounded-xl dark:bg-slate-800"
-                        onChange={(e) =>
-                          setEditProduct({
-                            ...editProduct,
-                            description: e.target.value,
-                          })
-                        }
-                      />
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="w-full mb-4 text-xs text-gray-500 dark:text-slate-400"
-                        onChange={(e) =>
-                          setEditProduct({
-                            ...editProduct,
-                            image: e.target.files[0],
-                          })
-                        }
-                      />
-                      <div className="flex justify-content gap-2">
-                        <button
-                          type="submit"
-                          className="w-full bg-green-600 text-white py-3 rounded-xl font-bold dark:bg-green-700 hover:bg-green-700 transition-colors"
-                        >
-                          Modifier
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setShowEditForm(false)}
-                          className="w-full bg-gray-600 text-white py-3 rounded-xl font-bold dark:bg-gray-700 hover:bg-green-700 transition-colors"
-                        >
-                          Annuler
-                        </button>
-                      </div>
-                    </form>
-                  )}
-                </div>
-              ))}
-            </div>
-          </>
-        ) : (
-          /* --- APPEL DE TON COMPOSANT DE REGLAGES --- */
-          <BusinessSettings
-            businessData={businessData}
-            onUpdate={fetchBusinessInfo}
-          />
-        )}
-      </div>
+      {/* Liste */}
+      {/* Liste avec édition inline */}
+      <ProductList
+        products={products}
+        editingProduct={editingProduct}
+        onEdit={handleEditClick}
+        onDelete={handleDelete}
+        onSaveEdit={handleSaveEdit}
+        onCancelEdit={() => setEditingProduct(null)}
+        businessType={business?.business_type}
+      />
     </div>
   );
 };

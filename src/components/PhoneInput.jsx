@@ -195,7 +195,7 @@ const PhoneInput = ({ value, onChange, error, disabled }) => {
       )}
 
       {/* Hint */}
-      <p className="mt-1.5 text-xs text-gray-400 dark:text-slate-500">
+      <p className="mt-1.5 text-xs text-gray-400 dark:text-slate-500 italic mx-auto text-center">
         Format: {selectedCountry.dial} {selectedCountry.mask}
       </p>
     </div>

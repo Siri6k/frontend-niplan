@@ -43,11 +43,11 @@ const Layout = ({ children }) => {
 
   const navItems = [
     { icon: Home, label: "Accueil", path: "/" },
-    { icon: ShoppingBag, label: "Boutique", path: "/dashboard?tab=products" },
+    { icon: ShoppingBag, label: "Boutique", path: "/dashboard" },
     {
       icon: User,
       label: isAuthenticated ? "Profil" : "Connexion",
-      path: isAuthenticated ? "/dashboard?tab=settings" : "/login",
+      path: isAuthenticated ? "/profile" : "/login",
     },
   ];
 
