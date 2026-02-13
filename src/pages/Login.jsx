@@ -149,7 +149,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-950 dark:to-slate-900 flex items-center justify-center p-4">
+    <div className="from-gray-50 to-gray-100 dark:from-slate-950 dark:to-slate-900 flex items-center justify-center mt-13 mx-auto">
       {/* ✅ max-w-full sur mobile, max-w-5xl sur desktop */}
       <div className="w-full max-w-full sm:max-w-lg lg:max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-center">
         {/* Côté gauche - Marketing */}

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Home, ShoppingBag, User, Sun, Moon } from "lucide-react";
 import { Outlet } from "react-router-dom";
+import ChatSupport from "./ChatSupport";
 
 const Layout = ({ children }) => {
   const location = useLocation();
@@ -85,7 +86,7 @@ const Layout = ({ children }) => {
       <main className="flex-1 px-4 pb-28 pt-4 max-w-7xl mx-auto w-full">
         {children || <Outlet />}
       </main>
-
+      {/* CHAT SUPPORT */}
       {/* BOTTOM NAV */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 px-4 pb-4">
         <div className="max-w-md mx-auto bg-bg-secondary/95 dark:bg-slate-900/95 backdrop-blur-lg border border-gray-200 dark:border-slate-800 rounded-2xl shadow-2xl flex justify-between px-2 py-2">
