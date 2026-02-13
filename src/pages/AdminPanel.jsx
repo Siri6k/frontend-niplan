@@ -72,6 +72,8 @@ const AdminDashboard = () => {
     activeUsers: 0,
     pendingUsers: 0,
     todayOtps: 0,
+    newUser: 0,
+    trendUsers: "+0%",
   });
 
   const navigate = useNavigate();
@@ -104,14 +106,20 @@ const AdminDashboard = () => {
       const active = resUsers.data.filter((u) => u.is_active).length;
       const today = new Date().toDateString();
       const todayOtps = resOtps.data.filter(
-        (o) => new Date(o.created_at).toDateString() === today,
+        (o) => new Date(o.updated_at).toDateString() === today,
       ).length;
-
+      const newUser = resUsers.data.filter(
+        (u) => new Date(u.date_joined).toDateString() === today,
+      ).length;
       setStats({
         totalUsers: resUsers.data.length,
         activeUsers: active,
         pendingUsers: resUsers.data.length - active,
         todayOtps,
+        newUser,
+        trendUsers: newUser
+          ? `+${Math.round((newUser / (resUsers.data.length - newUser)) * 100)}%`
+          : "+0%",
       });
 
       toast.success("Dashboard admin chargé");
@@ -227,7 +235,7 @@ const AdminDashboard = () => {
             label="Total vendeurs"
             value={stats.totalUsers}
             color="bg-blue-500"
-            trend="+12%"
+            trend={stats.trendUsers}
           />
           <StatCard
             icon={CheckCircle}
@@ -352,7 +360,7 @@ const AdminDashboard = () => {
                             {normalizedPhoneNumber(user.phone_whatsapp)}
                           </td>
                           <td className="p-3 text-gray-600 dark:text-slate-400">
-                            {user.business_name || "-"}
+                            {user.business || "-"}
                           </td>
                           <td className="p-3 text-center">
                             <span
