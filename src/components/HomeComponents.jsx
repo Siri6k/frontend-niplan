@@ -72,20 +72,28 @@ export const ProductSkeleton = () => (
   </div>
 );
 
+const formatPrice = (value) => {
+  const number = Number(value);
+  if (Number.isNaN(number)) return "0";
+  return number.toLocaleString();
+};
+
 const ProductCard = memo(
   ({ product, onOrder, onToggleFavorite, isFavorite }) => {
+    const safeProduct = product || {};
+
     const {
       id,
-      name,
-      price,
-      currency,
-      image,
-      location,
-      business_name,
-      vendeur_phone,
+      name = "",
+      price = 0,
+      currency = "",
+      image = "",
+      location = "",
+      business_name = "",
+      vendeur_phone = "",
       views = 0,
       is_new = false,
-    } = product;
+    } = safeProduct;
 
     const phone = vendeur_phone || "243899530506";
 
@@ -165,7 +173,7 @@ const ProductCard = memo(
           {/* Prix */}
           <div className="flex items-baseline gap-1 mb-2">
             <span className="text-lg font-black text-green-600 dark:text-green-400">
-              {price?.toLocaleString()}
+              {formatPrice(price)}
             </span>
             <span className="text-xs font-medium text-green-600/70 dark:text-green-400/70">
               {currency}
@@ -212,8 +220,9 @@ export const ProductGrid = ({
   emptyMessage = "Aucun produit disponible",
 }) => {
   const handleWhatsAppOrder = useCallback((product) => {
-    const phone = product.vendor_phone || "243899530506";
-    const message = `Bonjour, je suis intéressé par votre produit : *${product.name}* au prix de ${product.price?.toLocaleString()} ${product.currency}.\n\nEst-il toujours disponible ?\n\n_Vu sur Niplan Market_`;
+    const phone =
+      product.vendeur_phone ?? product.vendor_phone ?? "243899530506";
+    const message = `Bonjour, je suis intéressé par votre produit : *${formatPrice(product.price)} ${product.currency}.\n\nEst-il toujours disponible ?\n\n_Vu sur Niplan Market_`;
 
     // Utilisation de window.location pour Safari
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
@@ -237,8 +246,9 @@ export const ProductGrid = ({
       </div>
     );
   }
+  const safeProducts = Array.isArray(products) ? products : [];
 
-  if (!products?.length) {
+  if (!safeProducts.length) {
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
         <div className="w-24 h-24 bg-gray-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
@@ -256,13 +266,15 @@ export const ProductGrid = ({
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 p-4 max-w-7xl mx-auto">
-      {products.map((product) => (
+      {safeProducts.map((product) => (
         <ProductCard
           key={product.id}
           product={product}
           onOrder={handleWhatsAppOrder}
           onToggleFavorite={onToggleFavorite}
-          isFavorite={favorites.includes(product.id)}
+          isFavorite={
+            Array.isArray(favorites) && favorites.includes(product.id)
+          }
         />
       ))}
     </div>

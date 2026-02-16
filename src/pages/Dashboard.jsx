@@ -7,8 +7,6 @@ import toast from "react-hot-toast";
 import ProductList from "../components/ProductList";
 import ProductForm from "../components/ProductForm";
 import ShareBusiness from "../components/ShareBusiness";
-import BusinessCard from "../components/BusinessCard";
-import BusinessInfo from "../components/BusinessInfo";
 import { Link } from "react-router-dom";
 
 const Dashboard = () => {
@@ -53,6 +51,7 @@ const Dashboard = () => {
   }, []);
 
   const fetchData = async () => {
+    setIsLoading(true);
     try {
       const [businessRes] = await Promise.all([
         api.get("/my-business/update/"),
@@ -110,14 +109,18 @@ const Dashboard = () => {
     }
   };
 
-  if (isLoading) return <div className="p-8 text-center">Chargement...</div>;
-
+  if (isLoading)
+    return (
+      <div className="px-4 py-12 flex justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent" />
+      </div>
+    );
   return (
     <div className="p-4 space-y-4 w-full max-w-2xl mx-auto">
       {/* --- HEADER INFOS VENDEUR --- */}
       <div className="p-6 border-b flex justify-between items-center shadow-sm ">
         <div className="flex items-center gap-3 dark:text-slate-200">
-          <Link to={`/b/${business.slug}`}>
+          <Link to={`/b/${business?.slug}`}>
             <img
               src={
                 business.logo ||
@@ -129,7 +132,7 @@ const Dashboard = () => {
           </Link>
           <div>
             <h2 className="font-bold text-gray-900 leading-none dark:text-slate-200">
-              <Link to={`/b/${business.slug}`}>{business.name}</Link>
+              <Link to={`/b/${business?.slug}`}>{business?.name}</Link>
             </h2>
             {role === "vendor" && (
               <p className="text-xs text-gray-500 mt-1 ">
@@ -189,15 +192,17 @@ const Dashboard = () => {
 
       {/* Liste */}
       {/* Liste avec édition inline */}
-      <ProductList
-        products={products}
-        editingProduct={editingProduct}
-        onEdit={handleEditClick}
-        onDelete={handleDelete}
-        onSaveEdit={handleSaveEdit}
-        onCancelEdit={() => setEditingProduct(null)}
-        businessType={business?.business_type}
-      />
+      {business && business?.products.length > 0 && (
+        <ProductList
+          products={products}
+          editingProduct={editingProduct}
+          onEdit={handleEditClick}
+          onDelete={handleDelete}
+          onSaveEdit={handleSaveEdit}
+          onCancelEdit={() => setEditingProduct(null)}
+          businessType={business?.business_type}
+        />
+      )}
     </div>
   );
 };

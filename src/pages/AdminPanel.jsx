@@ -110,7 +110,7 @@ const AdminDashboard = () => {
       ).length;
       const newUser = resUsers.data.filter(
         (u) => new Date(u.date_joined).toDateString() === today,
-      ).length;
+      ).length || 0;
       setStats({
         totalUsers: resUsers.data.length,
         activeUsers: active,

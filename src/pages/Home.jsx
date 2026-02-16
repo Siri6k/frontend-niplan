@@ -20,26 +20,38 @@ const Home = () => {
 
   // Refs pour timers et état d'authentification
   const timersRef = useRef({});
-  const isAuthenticated = useRef(
-    !!localStorage.getItem("access_token"),
-  ).current;
+  let isAuthenticated = false;
+  try {
+    isAuthenticated = !!localStorage.getItem("access_token");
+  } catch {}
 
   // Fetch produits
   useEffect(() => {
     let isMounted = true;
-
     const fetchProducts = async () => {
       try {
         setIsLoading(true);
-        const { data } = await api.get("/products/");
-        if (isMounted) setProducts(data);
+
+        const res = await api.get("/products/");
+
+        let safeData = [];
+
+        if (Array.isArray(res.data)) {
+          safeData = res.data;
+        } else if (Array.isArray(res.data?.results)) {
+          safeData = res.data.results;
+        } else {
+          console.error("API returned unexpected format:", res.data);
+        }
+
+        if (isMounted) setProducts(safeData);
       } catch (error) {
         console.error("Erreur chargement produits:", error);
+        if (isMounted) setProducts([]);
       } finally {
         if (isMounted) setIsLoading(false);
       }
     };
-
     fetchProducts();
     return () => {
       isMounted = false;
@@ -151,7 +163,7 @@ const Home = () => {
         <div className="px-4 py-12 flex justify-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent" />
         </div>
-      ) : products.length > 0 ? (
+      ) : Array.isArray(products) && products.length > 0 ? (
         <ProductGrid products={products} />
       ) : (
         <div className="px-4 py-12 text-center text-text-secondary">
