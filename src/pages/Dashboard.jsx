@@ -15,7 +15,23 @@ const Dashboard = () => {
   const [showForm, setShowForm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [editingProduct, setEditingProduct] = useState(null); // Stocke le produit entier
-  const role = localStorage.getItem("role");
+  const role = localStorage.getItem("role") || "vendor";
+
+  const [authReady, setAuthReady] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      window.location.href = "/login";
+      return;
+    }
+    setAuthReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!authReady) return;
+    fetchData();
+  }, [authReady]);
 
   const handleEditClick = (product) => {
     setEditingProduct(product);
@@ -53,12 +69,21 @@ const Dashboard = () => {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const [businessRes] = await Promise.all([
-        api.get("/my-business/update/"),
-      ]);
+      const businessRes = await api.get("/my-business/update/");
+
+      if (!businessRes?.data) throw new Error("No data");
+
       setBusiness(businessRes.data);
-      setProducts(businessRes.data.products);
+      setProducts(businessRes.data.products || []);
     } catch (err) {
+      console.log(err);
+
+      if (err?.response?.status === 401) {
+        localStorage.clear();
+        window.location.href = "/login";
+        return;
+      }
+
       toast.error("Erreur de chargement");
     } finally {
       setIsLoading(false);
@@ -109,12 +134,14 @@ const Dashboard = () => {
     }
   };
 
-  if (isLoading)
+  if (!authReady || isLoading) {
     return (
       <div className="px-4 py-12 flex justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent" />
       </div>
     );
+  }
+
   return (
     <div className="p-4 space-y-4 w-full max-w-2xl mx-auto">
       {/* --- HEADER INFOS VENDEUR --- */}
@@ -123,7 +150,7 @@ const Dashboard = () => {
           <Link to={`/b/${business?.slug}`}>
             <img
               src={
-                business.logo ||
+                business?.logo ||
                 "https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
               }
               className="w-12 h-12 rounded-full object-cover border-2 border-blue-500"

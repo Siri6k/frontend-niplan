@@ -5,7 +5,10 @@ import { Link } from "react-router-dom";
 
 export const Hero = () => {
   // On vérifie si le token existe
-  const isAuthenticated = !!localStorage.getItem("access_token");
+  let isAuthenticated = false;
+  try {
+    isAuthenticated = !!localStorage.getItem("access_token");
+  } catch {}
 
   return (
     <div className="bg-green-600 text-white p-8 text-center rounded-b-3xl dark:bg-slate-800">
@@ -90,12 +93,10 @@ const ProductCard = memo(
       image = "",
       location = "",
       business_name = "",
-      vendeur_phone = "",
+      vendor_phone = "",
       views = 0,
       is_new = false,
     } = safeProduct;
-
-    const phone = vendeur_phone || "243899530506";
 
     const handleWhatsAppClick = useCallback(
       (e) => {

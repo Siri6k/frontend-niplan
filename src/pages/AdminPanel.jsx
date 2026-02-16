@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import api from "../api";
 import { normalizedPhoneNumber } from "../utils/Constants";
 import { useNavigate } from "react-router-dom";
@@ -61,8 +61,7 @@ const StatCard = ({ icon: Icon, label, value, color, trend }) => (
 const AdminDashboard = () => {
   const [users, setUsers] = useState([]);
   const [otps, setOtps] = useState([]);
-  const [filteredUsers, setFilteredUsers] = useState([]);
-  const [filteredOtps, setFilteredOtps] = useState([]);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview"); // overview, users, otps
@@ -76,6 +75,22 @@ const AdminDashboard = () => {
     trendUsers: "+0%",
   });
 
+  const filteredOtps = useMemo(() => {
+    const query = searchQuery.toLowerCase();
+    return otps.filter(
+      (o) =>
+        normalizedPhoneNumber(o.phone_number).toLowerCase().includes(query) ||
+        o.code.includes(query),
+    );
+  }, [otps, searchQuery]);
+  const filteredUsers = useMemo(() => {
+    const query = searchQuery.toLowerCase();
+    return users.filter(
+      (u) =>
+        normalizedPhoneNumber(u.phone_whatsapp).toLowerCase().includes(query) ||
+        u.business_name?.toLowerCase().includes(query),
+    );
+  }, [users, searchQuery]);
   const navigate = useNavigate();
 
   // Vérification auth
@@ -98,9 +113,7 @@ const AdminDashboard = () => {
       ]);
 
       setUsers(resUsers.data);
-      setFilteredUsers(resUsers.data);
       setOtps(resOtps.data);
-      setFilteredOtps(resOtps.data);
 
       // Calcul stats
       const active = resUsers.data.filter((u) => u.is_active).length;
@@ -108,18 +121,20 @@ const AdminDashboard = () => {
       const todayOtps = resOtps.data.filter(
         (o) => new Date(o.updated_at).toDateString() === today,
       ).length;
-      const newUser = resUsers.data.filter(
-        (u) => new Date(u.date_joined).toDateString() === today,
-      ).length || 0;
+      const newUser =
+        resUsers.data.filter(
+          (u) => new Date(u.date_joined).toDateString() === today,
+        ).length || 0;
       setStats({
         totalUsers: resUsers.data.length,
         activeUsers: active,
         pendingUsers: resUsers.data.length - active,
         todayOtps,
         newUser,
-        trendUsers: newUser
-          ? `+${Math.round((newUser / (resUsers.data.length - newUser)) * 100)}%`
-          : "+0%",
+        trendUsers:
+          newUser && resUsers.data.length - newUser > 0
+            ? `+${Math.round((newUser / (resUsers.data.length - newUser)) * 100)}%`
+            : "+0%",
       });
 
       toast.success("Dashboard admin chargé");
@@ -129,28 +144,6 @@ const AdminDashboard = () => {
       setIsLoading(false);
     }
   };
-
-  // Filtrage
-  useEffect(() => {
-    const query = searchQuery.toLowerCase();
-
-    setFilteredUsers(
-      users.filter(
-        (u) =>
-          normalizedPhoneNumber(u.phone_whatsapp)
-            .toLowerCase()
-            .includes(query) || u.business_name?.toLowerCase().includes(query),
-      ),
-    );
-
-    setFilteredOtps(
-      otps.filter(
-        (o) =>
-          normalizedPhoneNumber(o.phone_number).toLowerCase().includes(query) ||
-          o.code.includes(query),
-      ),
-    );
-  }, [searchQuery, users, otps]);
 
   const handleSort = (key) => {
     const direction =
@@ -180,14 +173,6 @@ const AdminDashboard = () => {
       toast.error("Erreur d'activation");
     }
   };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
@@ -228,34 +213,39 @@ const AdminDashboard = () => {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatCard
-            icon={Users}
-            label="Total vendeurs"
-            value={stats.totalUsers}
-            color="bg-blue-500"
-            trend={stats.trendUsers}
-          />
-          <StatCard
-            icon={CheckCircle}
-            label="Actifs"
-            value={stats.activeUsers}
-            color="bg-green-500"
-          />
-          <StatCard
-            icon={Clock}
-            label="En attente"
-            value={stats.pendingUsers}
-            color="bg-amber-500"
-          />
-          <StatCard
-            icon={Key}
-            label="Codes aujourd'hui"
-            value={stats.todayOtps}
-            color="bg-purple-500"
-          />
-        </div>
+        {isLoading ? (
+          <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <StatCard
+              icon={Users}
+              label="Total vendeurs"
+              value={stats.totalUsers}
+              color="bg-blue-500"
+              trend={stats.trendUsers}
+            />
+            <StatCard
+              icon={CheckCircle}
+              label="Actifs"
+              value={stats.activeUsers}
+              color="bg-green-500"
+            />
+            <StatCard
+              icon={Clock}
+              label="En attente"
+              value={stats.pendingUsers}
+              color="bg-amber-500"
+            />
+            <StatCard
+              icon={Key}
+              label="Codes aujourd'hui"
+              value={stats.todayOtps}
+              color="bg-purple-500"
+            />
+          </div>
+        )}
 
         {/* Search & Tabs */}
         <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border dark:border-slate-800 p-4">
@@ -303,7 +293,7 @@ const AdminDashboard = () => {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                   <Store size={20} className="text-blue-600" />
-                  Vendeurs ({filteredUsers.length})
+                  Vendeurs ({filteredUsers.length || 0})
                 </h2>
                 {activeTab === "overview" && (
                   <button
@@ -349,55 +339,62 @@ const AdminDashboard = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y dark:divide-slate-700">
-                    {filteredUsers
-                      .slice(0, activeTab === "overview" ? 5 : undefined)
-                      .map((user) => (
-                        <tr
-                          key={user.id}
-                          className="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors"
-                        >
-                          <td className="p-3 font-mono text-gray-900 dark:text-slate-200">
-                            {normalizedPhoneNumber(user.phone_whatsapp)}
-                          </td>
-                          <td className="p-3 text-gray-600 dark:text-slate-400">
-                            {user.business || "-"}
-                          </td>
-                          <td className="p-3 text-center">
-                            <span
-                              className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                user.business_type === "TROC"
-                                  ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                                  : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-                              }`}
-                            >
-                              {user.business_type || "VENTE"}
-                            </span>
-                          </td>
-                          <td className="p-3 text-center">
-                            {user.is_active ? (
-                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-xs font-medium">
-                                <CheckCircle size={12} />
-                                Actif
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-xs font-medium">
-                                <Clock size={12} />
-                                En attente
-                              </span>
-                            )}
-                          </td>
-                          <td className="p-3 text-right">
-                            {!user.is_active && (
-                              <button
-                                onClick={() => handleActivateUser(user.id)}
-                                className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-colors"
+                    {isLoading && (
+                      <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+                      </div>
+                    )}
+                    {!isLoading &&
+                      filteredUsers.length > 0 &&
+                      filteredUsers
+                        .slice(0, activeTab === "overview" ? 5 : undefined)
+                        .map((user) => (
+                          <tr
+                            key={user.id}
+                            className="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors"
+                          >
+                            <td className="p-3 font-mono text-gray-900 dark:text-slate-200">
+                              {normalizedPhoneNumber(user.phone_whatsapp)}
+                            </td>
+                            <td className="p-3 text-gray-600 dark:text-slate-400">
+                              {user.business || "-"}
+                            </td>
+                            <td className="p-3 text-center">
+                              <span
+                                className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                  user.business_type === "TROC"
+                                    ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                                    : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                                }`}
                               >
-                                Activer
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
+                                {user.business_type || "VENTE"}
+                              </span>
+                            </td>
+                            <td className="p-3 text-center">
+                              {user.is_active ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-xs font-medium">
+                                  <CheckCircle size={12} />
+                                  Actif
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-xs font-medium">
+                                  <Clock size={12} />
+                                  En attente
+                                </span>
+                              )}
+                            </td>
+                            <td className="p-3 text-right">
+                              {!user.is_active && (
+                                <button
+                                  onClick={() => handleActivateUser(user.id)}
+                                  className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-colors"
+                                >
+                                  Activer
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
                   </tbody>
                 </table>
               </div>
@@ -447,39 +444,46 @@ const AdminDashboard = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y dark:divide-slate-700">
-                    {filteredOtps
-                      .slice(0, activeTab === "overview" ? 5 : undefined)
-                      .map((otp) => (
-                        <tr
-                          key={otp.id}
-                          className="hover:bg-orange-50/50 dark:hover:bg-slate-800/50 transition-colors"
-                        >
-                          <td className="p-3 font-mono text-gray-900 dark:text-slate-200">
-                            {normalizedPhoneNumber(otp.phone_number)}
-                          </td>
-                          <td className="p-3">
-                            <span className="font-bold text-blue-600 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded-lg">
-                              {otp.code}
-                            </span>
-                          </td>
-                          <td className="p-3 text-gray-500 dark:text-slate-400 text-xs">
-                            {useTimeAgo(otp.updated_at)}
-                          </td>
-                          <td className="p-3 text-center">
-                            {otp.is_used ? (
-                              <span className="inline-flex items-center gap-1 text-green-600 text-xs">
-                                <CheckCircle size={12} />
-                                Utilisé
+                    {isLoading && (
+                      <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+                      </div>
+                    )}
+                    {!isLoading &&
+                      filteredOtps.length > 0 &&
+                      filteredOtps
+                        .slice(0, activeTab === "overview" ? 5 : undefined)
+                        .map((otp) => (
+                          <tr
+                            key={otp.id}
+                            className="hover:bg-orange-50/50 dark:hover:bg-slate-800/50 transition-colors"
+                          >
+                            <td className="p-3 font-mono text-gray-900 dark:text-slate-200">
+                              {normalizedPhoneNumber(otp.phone_number)}
+                            </td>
+                            <td className="p-3">
+                              <span className="font-bold text-blue-600 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded-lg">
+                                {otp.code}
                               </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1 text-amber-600 text-xs">
-                                <AlertCircle size={12} />
-                                En attente
-                              </span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
+                            </td>
+                            <td className="p-3 text-gray-500 dark:text-slate-400 text-xs">
+                              {useTimeAgo(otp.updated_at)}
+                            </td>
+                            <td className="p-3 text-center">
+                              {otp.is_used ? (
+                                <span className="inline-flex items-center gap-1 text-green-600 text-xs">
+                                  <CheckCircle size={12} />
+                                  Utilisé
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 text-amber-600 text-xs">
+                                  <AlertCircle size={12} />
+                                  En attente
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
                   </tbody>
                 </table>
               </div>

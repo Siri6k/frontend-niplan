@@ -43,11 +43,15 @@ const Login = () => {
   const [code, setCode] = useState("");
   const [step, setStep] = useState(STEPS.PHONE);
   const [isLoading, setIsLoading] = useState(false);
-  const [countdown, setCountdown] = useState(0);
+  const [countdown, setCountdown] = useState(
+    parseInt(sessionStorage.getItem("otp_countdown")) || 0,
+  );
   const [error, setError] = useState("");
+  const [isVerifying, setIsVerifying] = useState(false);
 
   const navigate = useNavigate();
   const inputRef = useRef(null);
+  const countdownRef = useRef(countdown);
 
   // Redirection si déjà connecté
   useEffect(() => {
@@ -57,11 +61,15 @@ const Login = () => {
 
   // Focus auto sur input
   useEffect(() => {
-    inputRef.current?.focus();
+    if (step === STEPS.VERIFY) {
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
   }, [step]);
 
-  // Compte à rebours pour renvoi
+  // Compte à rebours persistant
   useEffect(() => {
+    countdownRef.current = countdown;
+    sessionStorage.setItem("otp_countdown", countdown.toString());
     if (countdown > 0) {
       const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
       return () => clearTimeout(timer);
@@ -80,7 +88,7 @@ const Login = () => {
     setError("");
 
     // Auto-submit quand 6 chiffres
-    if (value.length === 6) {
+    if (value.length === 6 && !isVerifying) {
       setTimeout(() => handleVerify(value), 300);
     }
   };
@@ -113,8 +121,9 @@ const Login = () => {
   };
 
   const handleVerify = async (verificationCode = code) => {
-    if (verificationCode.length !== 6) return;
+    if (verificationCode.length !== 6 || isVerifying) return;
 
+    setIsVerifying(true);
     setIsLoading(true);
     try {
       const res = await api.post("/auth/verify-otp/", {
@@ -138,6 +147,7 @@ const Login = () => {
       toast.error("Code incorrect");
       setError("Code invalide. Vérifiez WhatsApp.");
       setCode("");
+      setIsVerifying(false);
       inputRef.current?.focus();
     } finally {
       setIsLoading(false);
@@ -146,6 +156,8 @@ const Login = () => {
 
   const resendCode = async () => {
     if (countdown > 0) return;
+    setCode("");
+    setError("");
     await receiveOtp();
   };
 
@@ -153,6 +165,7 @@ const Login = () => {
     setStep(STEPS.PHONE);
     setCode("");
     setError("");
+    setIsVerifying(false);
   };
 
   return (

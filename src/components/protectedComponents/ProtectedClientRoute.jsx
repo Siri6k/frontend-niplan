@@ -1,15 +1,19 @@
-// components/ProtectedClientRoute.jsx
 import { Navigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 export const ProtectedClientRoute = ({ children }) => {
-  const token = localStorage.getItem("access_token");
-  const role = localStorage.getItem("role");
+  const [loading, setLoading] = useState(true);
+  const [authorized, setAuthorized] = useState(false);
 
-  // Vérifie token ET rôle vendor (ou superadmin peut aussi accéder)
-  if (!token) {
-    // Redirige vers login si pas connecté
-    return <Navigate to="/login" replace />;
-  }
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    setAuthorized(!!token);
+    setLoading(false);
+  }, []);
+
+  if (loading) return null; // important Safari
+
+  if (!authorized) return <Navigate to="/login" replace />;
 
   return children;
 };

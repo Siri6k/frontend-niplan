@@ -159,11 +159,11 @@ const Home = () => {
       </section>
 
       {/* Grille produits */}
-      {isLoading && products.length === 0 ? (
+      {isLoading ? (
         <div className="px-4 py-12 flex justify-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent" />
         </div>
-      ) : Array.isArray(products) && products.length > 0 ? (
+      ) : !isLoading && Array.isArray(products) && products.length > 0 ? (
         <ProductGrid products={products} />
       ) : (
         <div className="px-4 py-12 text-center text-text-secondary">

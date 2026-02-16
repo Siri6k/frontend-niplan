@@ -1,15 +1,20 @@
-// components/ProtectedAdminRoute.jsx
 import { Navigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 export const ProtectedAdminRoute = ({ children }) => {
-  const token = localStorage.getItem("access_token");
-  const role = localStorage.getItem("role");
+  const [loading, setLoading] = useState(true);
+  const [authorized, setAuthorized] = useState(false);
 
-  // Vérifie token ET rôle superadmin
-  if (!token || role !== "superadmin") {
-    // Redirige vers dashboard si pas admin
-    return <Navigate to="/dashboard" replace />;
-  }
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    const role = localStorage.getItem("role");
+    setAuthorized(token && role === "superadmin");
+    setLoading(false);
+  }, []);
+
+  if (loading) return null;
+
+  if (!authorized) return <Navigate to="/dashboard" replace />;
 
   return children;
 };
