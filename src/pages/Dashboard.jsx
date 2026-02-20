@@ -199,17 +199,17 @@ const Dashboard = () => {
         <button
           onClick={() => {
             setEditingProduct(null);
-            setShowForm(!showForm);
+            setShowForm((prev) => !prev || editingProduct);
           }}
           className="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2"
         >
           <PlusCircle size={18} />
-          {showForm ? "Fermer" : "Ajouter"}
+          {showForm && !editingProduct ? "Fermer" : "Ajouter"}
         </button>
       </div>
 
       {/* Formulaire */}
-      {showForm && (
+      {showForm && !editingProduct && (
         <ProductForm
           businessType={business?.business_type}
           onSubmit={handleAdd}

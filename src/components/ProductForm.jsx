@@ -22,7 +22,7 @@ const ProductForm = ({
     price: product?.price || "",
     currency: product?.currency || "USD",
     description: product?.description || "",
-    location: product?.location || "Kinshasa, RDC",
+    location: product?.location || "",
     exchange_for: product?.exchange_for || "",
     is_available: product?.is_available ?? true,
     image: null,
@@ -33,7 +33,9 @@ const ProductForm = ({
   const [showFull, setShowFull] = useState(!compact);
   const fileInputRef = useRef(null);
 
-  const isTrocMode = businessType === "TROC" || formData.exchange_for;
+  const [isTrocMode, setIsTrocMode] = useState(
+    businessType === "TROC" || product?.exchange_for,
+  );
   const isEditing = !!product;
 
   const handleImageChange = (e) => {
@@ -251,6 +253,29 @@ const ProductForm = ({
           <option value="USD">USD</option>
         </select>
       </div>
+      <div className="flex gap-2 items-center justify-evenly">
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={formData.is_available}
+            onChange={(e) =>
+              setFormData({ ...formData, is_available: e.target.checked })
+            }
+            className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+          />
+          Disponible
+        </label>
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={isTrocMode}
+            onChange={(e) => {
+              setIsTrocMode(e.target.checked);
+            }}
+          />
+          Échange (Troc accepté)
+        </label>
+      </div>
       {isTrocMode && (
         <input
           type="text"
@@ -263,7 +288,7 @@ const ProductForm = ({
         />
       )}
       <textarea
-        placeholder="Description"
+        placeholder="Description du produit (état, caractéristiques, etc.)"
         value={formData.description}
         onChange={(e) =>
           setFormData({ ...formData, description: e.target.value })
@@ -272,7 +297,7 @@ const ProductForm = ({
       />
       <input
         type="text"
-        placeholder="Localisation"
+        placeholder="Lieu (ex: Kinshasa, RDC)"
         value={formData.location}
         onChange={(e) => setFormData({ ...formData, location: e.target.value })}
         className="w-full p-3 rounded-xl border dark:bg-slate-800"
