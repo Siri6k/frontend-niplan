@@ -37,7 +37,7 @@ const BusinessProfile = () => {
 
   return (
     <div className="p-4">
-      <h1 className="text-lg font-bold text-gray-800 dark:text-slate-200 mb-4">
+      <h1 className="text-lg font-bold text-center text-gray-800 dark:text-slate-200 mb-4">
         Mon Business
       </h1>
 
