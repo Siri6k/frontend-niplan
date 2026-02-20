@@ -93,6 +93,8 @@ const PhoneInput = ({ value, onChange, error, disabled }) => {
 
   // Formatage selon le masque du pays
   const formatNumber = (input, mask) => {
+    const inputHasStartWithZero = input.startsWith("0");
+    input = inputHasStartWithZero ? input.slice(1) : input; // Retirer le zéro de départ pour le formatage
     const cleaned = input.replace(/\D/g, "");
     let formatted = "";
     let index = 0;
