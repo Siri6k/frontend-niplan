@@ -12,7 +12,6 @@ const BusinessSettings = ({ businessData, onUpdate }) => {
   const [businessType, setBusinessType] = useState(
     businessData.business_type || "boutique",
   );
-  const businessUrl = businessData?.slug;
   const [preview, setPreview] = useState(businessData.logo);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -39,7 +38,7 @@ const BusinessSettings = ({ businessData, onUpdate }) => {
     try {
       // On appelle la fonction du parent et on attend le résultat
       const updatedBusiness = await onUpdate(formData);
-
+      localStorage.setItem("business_slug", updatedBusiness.slug); // Met à jour le slug en localStorage
       // Navigation vers le nouveau slug si besoin
       navigate(`/b/${updatedBusiness.slug}`);
     } catch (error) {
