@@ -327,6 +327,10 @@ const Login = () => {
     localStorage.setItem("refresh_token", refresh);
     localStorage.setItem("business_slug", business_slug || "");
     localStorage.setItem("role", role || "vendor");
+    localStorage.setItem(
+      "is_phone_verified",
+      is_phone_verified ? is_phone_verified : "false",
+    );
 
     setStep(STEPS.SUCCESS);
 
