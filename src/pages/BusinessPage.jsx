@@ -17,8 +17,13 @@ const BusinessPage = () => {
     });
   }, [slug]);
 
-  if (!business) return <div className="p-10 text-center">Chargement...</div>;
-
+  if (!business) {
+    return (
+      <div className="px-4 py-12 flex justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent" />
+      </div>
+    );
+  }
   return (
     <div className="pb-20">
       {/* HEADER BOUTIQUE */}

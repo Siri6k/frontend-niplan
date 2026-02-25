@@ -24,24 +24,34 @@ const BusinessProfile = () => {
     }
   };
 
+  // On reçoit le formData de l'enfant et on fait l'unique PATCH ici
   const handleUpdate = async (formData) => {
     try {
-      await api.patch("/my-business/update/", formData);
-      toast.success("Profil mis à jour !");
-      fetchBusiness();
+      const res = await api.patch("/my-business/update/", formData);
+      toast.success("Boutique mise à jour !");
+
+      // On met à jour le state local avec la réponse du serveur (évite un GET inutile)
+      setBusiness(res.data);
+      localStorage.setItem("business_slug", res.data.slug);
+
+      return res.data; // On retourne les données pour que l'enfant puisse rediriger
     } catch (err) {
       toast.error("Erreur de mise à jour");
+      throw err;
     }
   };
 
-  if (isLoading) return <div className="p-8 text-center">Chargement...</div>;
+  if (isLoading) return <div className="animate-spin ..."></div>;
 
   return (
-    <div className="p-4">
-      <h1 className="text-lg font-bold text-center text-gray-800 dark:text-slate-200 mb-4">
-        <SettingsIcon className="inline-block ml-2" /> Modifier mon Profil
+    <div className="p-1">
+      <h1 className="text-center text-2xl font-bold mb-2 text-gray-800 dark:text-white">
+        Modifier mon Profil{" "}
+        <SettingsIcon
+          size={20}
+          className="inline-block text-green-500 ml-2 mb-2"
+        />
       </h1>
-
       {business && (
         <BusinessSettings businessData={business} onUpdate={handleUpdate} />
       )}

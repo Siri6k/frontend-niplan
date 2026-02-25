@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import api from "../api";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { Save } from "lucide-react";
 
 const BusinessSettings = ({ businessData, onUpdate }) => {
   const [name, setName] = useState(businessData.name);
@@ -9,7 +10,7 @@ const BusinessSettings = ({ businessData, onUpdate }) => {
   const [description, setDescription] = useState(businessData.description);
   const [logo, setLogo] = useState(null);
   const [businessType, setBusinessType] = useState(
-    businessData.business_type || "boutique"
+    businessData.business_type || "boutique",
   );
   const businessUrl = businessData?.slug;
   const [preview, setPreview] = useState(businessData.logo);
@@ -36,17 +37,15 @@ const BusinessSettings = ({ businessData, onUpdate }) => {
     if (logo) formData.append("logo", logo);
 
     try {
-      const response = await api.patch("/my-business/update/", formData);
-      if (response.status === 200) {
-        toast.success("Boutique mise à jour !"); // Plus propre que alert()
-        onUpdate();
-      }
+      // On appelle la fonction du parent et on attend le résultat
+      const updatedBusiness = await onUpdate(formData);
+
+      // Navigation vers le nouveau slug si besoin
+      navigate(`/b/${updatedBusiness.slug}`);
     } catch (error) {
-      console.error("Erreur de mise à jour", error);
-      toast.error("Erreur lors de la mise à jour");
+      // L'erreur est déjà gérée par le toast du parent
     } finally {
       setLoading(false);
-      navigate("/b/" + businessUrl);
     }
   };
 
@@ -133,7 +132,7 @@ const BusinessSettings = ({ businessData, onUpdate }) => {
           disabled={loading}
           className="w-full py-4 bg-black text-white font-bold rounded-xl hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? "Mise à jour..." : "Enregistrer les modifications"}
+          Enregistrer <Save size={16} className="inline ml-2" />
         </button>
       </form>
     </div>
