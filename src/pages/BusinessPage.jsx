@@ -1,17 +1,21 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import api from "../api";
 import { ProductGrid } from "../components/HomeComponents";
-import { MapPin, MessageCircle, Share2 } from "lucide-react";
+import { MapPin, MessageCircle, SettingsIcon, Share2 } from "lucide-react";
 
 const BusinessPage = () => {
   const { slug } = useParams();
   const [business, setBusiness] = useState(null);
+  const [isMyBusiness, setIsMyBusiness] = useState(false);
 
   useEffect(() => {
     // 1. Récupérer les détails de la boutique
     api.get(`/business/${slug}/`).then((res) => {
       setBusiness(res.data);
+      if (res.data.slug === localStorage.getItem("business_slug")) {
+        setIsMyBusiness(true);
+      }
       // 2. Récupérer les produits de cette boutique uniquement
       // Assure-toi que ton backend filtre par boutique dans ce endpoint
     });
@@ -43,6 +47,20 @@ const BusinessPage = () => {
           <MapPin size={14} />
           <span>{business.location || "Kinshasa, RDC"}</span>
         </div>
+        {isMyBusiness && (
+          <div className="mt-2">
+            <Link
+              to={`/profile`}
+              className="inline-flex items-center gap-1 text-green-500 py-2 px-4 rounded-2xl font-bold hover:bg-green-600 transition-all"
+            >
+              <SettingsIcon
+                size={16}
+                className="inline-block text-green-500 mb-1"
+              />
+              Modifier
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* STATISTIQUES OU BIO */}
