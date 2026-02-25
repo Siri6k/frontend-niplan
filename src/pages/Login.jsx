@@ -329,7 +329,7 @@ const Login = () => {
     localStorage.setItem("role", role || "vendor");
     localStorage.setItem(
       "is_phone_verified",
-      is_phone_verified ? is_phone_verified : "false",
+      is_phone_verified === true ? "true" : "false",
     );
 
     setStep(STEPS.SUCCESS);
