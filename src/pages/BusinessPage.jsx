@@ -30,7 +30,7 @@ const BusinessPage = () => {
               "https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
             }
             className="w-full h-full object-cover rounded-2xl"
-            alt="logo"  
+            alt="logo"
           />
         </div>
         <h1 className="text-2xl font-black">{business.name}</h1>
@@ -58,7 +58,13 @@ const BusinessPage = () => {
       {/* GRILLE PRODUITS */}
       <div className="px-4 mt-10">
         <h2 className="font-bold text-lg mb-4 dark:text-white">Catalogue</h2>
-        <ProductGrid products={business.products} />
+        {business.products && business.products.length > 0 ? (
+          <ProductGrid products={business.products} />
+        ) : (
+          <p className="text-center text-gray-500 dark:text-gray-400 py-10">
+            Aucun produit disponible pour le moment.
+          </p>
+        )}
       </div>
     </div>
   );

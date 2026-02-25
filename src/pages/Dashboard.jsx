@@ -1,13 +1,14 @@
 // pages/Dashboard.jsx
 import { useState, useEffect } from "react";
-import { PlusCircle } from "lucide-react";
+import { MoveRightIcon, PlusCircle } from "lucide-react";
 import { Check, Settings2 as Settings2Icon, LogOut } from "lucide-react";
 import api from "../api";
 import toast from "react-hot-toast";
 import ProductList from "../components/ProductList";
 import ProductForm from "../components/ProductForm";
 import ShareBusiness from "../components/ShareBusiness";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import VerifyPhoneModal from "../components/VerifyPhoneModal";
 
 const Dashboard = () => {
   const [products, setProducts] = useState([]);
@@ -16,23 +17,30 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [editingProduct, setEditingProduct] = useState(null); // Stocke le produit entier
   const role = localStorage.getItem("role") || "vendor";
-
+  const isPhoneVerified = localStorage.getItem("is_phone_verified") || "false";
+  const [openModal, setOpenModal] = useState(false);
+  const [phone, setPhone] = useState("");
   const [authReady, setAuthReady] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
+
     if (!token) {
-      window.location.href = "/login";
-      return;
+      // Si pas de token, on dégage direct vers le login
+      navigate("/login", { replace: true });
+    } else {
+      // Si on a un token, on dit que l'auth est prête
+      setAuthReady(true);
     }
-    setAuthReady(true);
-  }, []);
+  }, [navigate]);
 
+  // Un seul useEffect pour les données, qui attend que l'auth soit OK
   useEffect(() => {
-    if (!authReady) return;
-    fetchData();
+    if (authReady) {
+      fetchData();
+    }
   }, [authReady]);
-
   const handleEditClick = (product) => {
     setEditingProduct(product);
     // Scroll vers le produit
@@ -47,7 +55,9 @@ const Dashboard = () => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
     localStorage.removeItem("role");
-    window.location.href = "/login";
+    localStorage.removeItem("business_slug");
+    localStorage.removeItem("is_phone_verified");
+    navigate("/login", { replace: true });
   };
   const handleSaveEdit = async (slug, formData, isImageChanged) => {
     try {
@@ -62,27 +72,22 @@ const Dashboard = () => {
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
   const fetchData = async () => {
     setIsLoading(true);
     try {
       const businessRes = await api.get("/my-business/update/");
 
-      if (!businessRes?.data) throw new Error("No data");
+      if (businessRes.status !== 200) {
+        throw new Error(
+          businessRes?.data?.error || "Erreur de chargement du profil",
+        );
+      }
 
       setBusiness(businessRes.data);
       setProducts(businessRes.data.products || []);
+      setPhone(businessRes.data.owner_phone || "");
     } catch (err) {
       console.log(err);
-
-      if (err?.response?.status === 401) {
-        localStorage.clear();
-        window.location.href = "/login";
-        return;
-      }
 
       toast.error("Erreur de chargement");
     } finally {
@@ -161,7 +166,16 @@ const Dashboard = () => {
             <h2 className="font-bold text-gray-900 leading-none dark:text-slate-200">
               <Link to={`/b/${business?.slug}`}>{business?.name}</Link>
             </h2>
-            {role === "vendor" && (
+            {role === "vendor" && isPhoneVerified !== "true" && (
+              <p
+                className="text-xs text-red-500 mt-1 "
+                onClick={(e) => setOpenModal(true)}
+              >
+                Vérifiez votre numéro{" "}
+                <MoveRightIcon size={12} className="inline text-red-500 mr-1" />
+              </p>
+            )}
+            {role === "vendor" && isPhoneVerified === "true" && (
               <p className="text-xs text-gray-500 mt-1 ">
                 Vendeur vérifié{" "}
                 <Check size={12} className="inline text-green-500 mr-1" />
@@ -216,10 +230,9 @@ const Dashboard = () => {
           onCancel={() => setShowForm(false)}
         />
       )}
-
       {/* Liste */}
       {/* Liste avec édition inline */}
-      {business && business?.products.length > 0 && (
+      {products.length > 0 && (
         <ProductList
           products={products}
           editingProduct={editingProduct}
@@ -228,6 +241,18 @@ const Dashboard = () => {
           onSaveEdit={handleSaveEdit}
           onCancelEdit={() => setEditingProduct(null)}
           businessType={business?.business_type}
+        />
+      )}
+      {products.length === 0 && (
+        <p className="text-center text-gray-500 dark:text-gray-400 py-10">
+          Aucun produit ajouté pour le moment.
+        </p>
+      )}
+      {openModal && phone && (
+        <VerifyPhoneModal
+          isOpen={openModal}
+          onClose={() => setOpenModal(false)}
+          phone={phone}
         />
       )}
     </div>

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import api from "../api";
 import toast from "react-hot-toast";
 import BusinessSettings from "../components/BusinessSettings";
+import { SettingsIcon } from "lucide-react";
 
 const BusinessProfile = () => {
   const [business, setBusiness] = useState(null);
@@ -38,7 +39,7 @@ const BusinessProfile = () => {
   return (
     <div className="p-4">
       <h1 className="text-lg font-bold text-center text-gray-800 dark:text-slate-200 mb-4">
-        Mon Business
+        <SettingsIcon className="inline-block ml-2" /> Modifier mon Profil
       </h1>
 
       {business && (

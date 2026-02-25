@@ -263,7 +263,9 @@ const Login = () => {
         code: otpCode,
         password: password, // mot de passe déjà stocké
       });
-
+      if (res.status !== 201) {
+        throw new Error("Vérification échouée");
+      }
       handleAuthSuccess(res.data);
       toast.success("Compte créé avec succès !");
     } catch (err) {
@@ -291,7 +293,7 @@ const Login = () => {
         code: "", // on envoie un code vide pour forcer la création sans vérification
         password: password, // mot de passe déjà stocké
       });
-
+      console.log(res);
       handleAuthSuccess(res.data);
       toast.success("Compte créé avec succès !");
     } catch (err) {
@@ -320,26 +322,34 @@ const Login = () => {
   };
 
   // === Succès: Stockage et redirection ===
-  const handleAuthSuccess = (data) => {
-    const { access, refresh, business_slug, role } = data;
+  // 1. Supprime l'import { data } en haut du fichier !
 
-    localStorage.setItem("access_token", access);
-    localStorage.setItem("refresh_token", refresh);
-    localStorage.setItem("business_slug", business_slug || "");
-    localStorage.setItem("role", role || "vendor");
+  // 2. Modifie la fonction handleAuthSuccess
+  const handleAuthSuccess = (authData) => {
+    // Renommé pour éviter le conflit avec l'import
+    // On stocke tout proprement
+    localStorage.setItem("access_token", authData.access);
+    localStorage.setItem("refresh_token", authData.refresh);
+    localStorage.setItem("business_slug", authData.business_slug || "");
+    localStorage.setItem("role", authData.role || "vendor");
+
+    // Stockage en booléen réel via JSON
     localStorage.setItem(
       "is_phone_verified",
-      is_phone_verified === true ? "true" : "false",
+      JSON.stringify(authData.is_phone_verified),
     );
 
+    // On change l'état visuel
     setStep(STEPS.SUCCESS);
 
+    // Utilisation d'un délai pour l'expérience utilisateur
     setTimeout(() => {
-      navigate("/dashboard");
-      toast.success("Bienvenue sur Niplan ! 🎉");
+      // On utilise replace: true pour vider l'historique du login
+      navigate("/dashboard", { replace: true });
+      // Le toast doit être APRES le navigate pour être sûr qu'il s'affiche sur la nouvelle page
+      setTimeout(() => toast.success("Bienvenue sur Niplan ! 🎉"), 100);
     }, 1500);
   };
-
   // === Retour arrière ===
   const goBack = () => {
     if (step !== STEPS.PHONE && step !== STEPS.SUCCESS) {
@@ -649,10 +659,10 @@ const Login = () => {
               )}
             </div>
 
-            <p
+            <div
+              className="w-full disabled:cursor-not-allowed text-gray-700 py-1 rounded-2xl font-bold text-lg transition-all flex items-center justify-center gap-2 cursor-pointer color-gray-500 hover:text-gray-900 disabled:text-gray-300"
               onClick={handleOtpVerifyLater}
               disabled={isLoading}
-              className="text-sm text-gray-500 hover:text-gray-700 cursor-pointer transition-colors flex items-center justify-center gap-1"
             >
               {isLoading ? (
                 <Spinner />
@@ -661,7 +671,7 @@ const Login = () => {
                   Verifier après <ArrowRight size={20} />
                 </>
               )}
-            </p>
+            </div>
           </div>
         );
 
