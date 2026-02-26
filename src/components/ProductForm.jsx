@@ -62,10 +62,9 @@ const ProductForm = ({
 
     if (isTrocMode && formData.exchange_for) {
       data.append("exchange_for", formData.exchange_for);
-    } else {
-      data.append("price", formData.price);
-      data.append("currency", formData.currency);
     }
+    data.append("price", formData.price);
+    data.append("currency", formData.currency);
 
     if (isImageChanged) {
       data.append("image", formData.image || "");

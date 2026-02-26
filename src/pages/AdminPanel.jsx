@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import api from "../api";
 import { normalizedPhoneNumber } from "../utils/Constants";
 import { useNavigate } from "react-router-dom";
@@ -13,18 +13,16 @@ import {
   Store,
   CheckCircle,
   Clock,
-  XCircle,
-  Filter,
   ChevronDown,
   ChevronUp,
-  MoreVertical,
   Phone,
   Calendar,
   TrendingUp,
   AlertCircle,
 } from "lucide-react";
 
-const useTimeAgo = (dateString) => {
+// Utility function for time formatting
+const getTimeAgo = (dateString) => {
   const date = new Date(dateString);
   const now = new Date();
   const seconds = Math.floor((now - date) / 1000);
@@ -61,10 +59,9 @@ const StatCard = ({ icon: Icon, label, value, color, trend }) => (
 const AdminDashboard = () => {
   const [users, setUsers] = useState([]);
   const [otps, setOtps] = useState([]);
-
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("overview"); // overview, users, otps
+  const [activeTab, setActiveTab] = useState("overview");
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
   const [stats, setStats] = useState({
     totalUsers: 0,
@@ -75,34 +72,24 @@ const AdminDashboard = () => {
     trendUsers: "+0%",
   });
 
-  const filteredOtps = useMemo(() => {
-    const query = searchQuery.toLowerCase();
-    return otps.filter(
-      (o) =>
-        normalizedPhoneNumber(o.phone_number).toLowerCase().includes(query) ||
-        o.code.includes(query),
-    );
-  }, [otps, searchQuery]);
-  const filteredUsers = useMemo(() => {
-    const query = searchQuery.toLowerCase();
-    return users.filter(
-      (u) =>
-        normalizedPhoneNumber(u.phone_whatsapp).toLowerCase().includes(query) ||
-        u.business_name?.toLowerCase().includes(query),
-    );
-  }, [users, searchQuery]);
   const navigate = useNavigate();
+  const dataLoaded = useRef(false); // Track if data was already loaded
 
-  // Vérification auth
+  // Auth check
   useEffect(() => {
     const isAdmin = localStorage.getItem("role");
     if (isAdmin !== "superadmin") {
       toast.error("Accès refusé : Administrateurs uniquement");
       navigate("/dashboard");
-    } else {
-      loadData();
+      return;
     }
-  }, []);
+
+    // Prevent double API call
+    if (dataLoaded.current) return;
+    dataLoaded.current = true;
+
+    loadData();
+  }, []); // Empty dependency array - runs once on mount
 
   const loadData = async () => {
     setIsLoading(true);
@@ -115,16 +102,18 @@ const AdminDashboard = () => {
       setUsers(resUsers.data);
       setOtps(resOtps.data);
 
-      // Calcul stats
+      // Calculate stats
       const active = resUsers.data.filter((u) => u.is_active).length;
       const today = new Date().toDateString();
-      const todayOtps = resOtps.data.filter(
-        (o) => new Date(o.updated_at).toDateString() === today,
+      const todayOtps = resOtps.data.filter((otp) => {
+        // On utilise created_at pour la création réelle
+        const dateCreation = new Date(otp.created_at);
+        return dateCreation.toDateString() === today;
+      }).length;
+      const newUser = resUsers.data.filter(
+        (u) => new Date(u.date_joined).toDateString() === today,
       ).length;
-      const newUser =
-        resUsers.data.filter(
-          (u) => new Date(u.date_joined).toDateString() === today,
-        ).length || 0;
+
       setStats({
         totalUsers: resUsers.data.length,
         activeUsers: active,
@@ -140,23 +129,46 @@ const AdminDashboard = () => {
       toast.success("Dashboard admin chargé");
     } catch (error) {
       toast.error("Erreur de chargement des données");
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Sort users
   const handleSort = (key) => {
     const direction =
       sortConfig.key === key && sortConfig.direction === "asc" ? "desc" : "asc";
     setSortConfig({ key, direction });
 
-    const sorted = [...filteredUsers].sort((a, b) => {
-      if (a[key] < b[key]) return direction === "asc" ? -1 : 1;
-      if (a[key] > b[key]) return direction === "asc" ? 1 : -1;
+    const sorted = [...users].sort((a, b) => {
+      const aVal = a[key] || "";
+      const bVal = b[key] || "";
+      if (aVal < bVal) return direction === "asc" ? -1 : 1;
+      if (aVal > bVal) return direction === "asc" ? 1 : -1;
       return 0;
     });
-    setFilteredUsers(sorted);
+    setUsers(sorted);
   };
+
+  // Apply search filter
+  const filteredUsers = useMemo(() => {
+    const query = searchQuery.toLowerCase();
+    return users.filter((u) => {
+      const phone = normalizedPhoneNumber(u.phone_whatsapp || "").toLowerCase();
+      const business = (u.business_name || "").toLowerCase();
+      return phone.includes(query) || business.includes(query);
+    });
+  }, [users, searchQuery]);
+
+  const filteredOtps = useMemo(() => {
+    const query = searchQuery.toLowerCase();
+    return otps.filter((o) => {
+      const phone = normalizedPhoneNumber(o.phone_number || "").toLowerCase();
+      const code = (o.code || "").toLowerCase();
+      return phone.includes(query) || code.includes(query);
+    });
+  }, [otps, searchQuery]);
 
   const handleLogout = () => {
     localStorage.clear();
@@ -169,9 +181,19 @@ const AdminDashboard = () => {
       await api.post(`/admin/users/${userId}/activate/`);
       toast.success("Utilisateur activé");
       loadData();
-    } catch {
+    } catch (error) {
       toast.error("Erreur d'activation");
+      console.error(error);
     }
+  };
+
+  // Helper to determine OTP display status
+  const getOtpDisplayStatus = (otp) => {
+    if (otp.is_used)
+      return { label: "Utilisé", color: "text-green-600", icon: CheckCircle };
+    if (otp.status === "expired")
+      return { label: "Expiré", color: "text-red-500", icon: Clock };
+    return { label: "En attente", color: "text-amber-600", icon: AlertCircle };
   };
 
   return (
@@ -196,10 +218,14 @@ const AdminDashboard = () => {
           <div className="flex items-center gap-3">
             <button
               onClick={loadData}
-              className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+              disabled={isLoading}
+              className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors disabled:opacity-50"
               title="Rafraîchir"
             >
-              <RefreshCw size={20} />
+              <RefreshCw
+                size={20}
+                className={isLoading ? "animate-spin" : ""}
+              />
             </button>
             <button
               onClick={handleLogout}
@@ -213,39 +239,34 @@ const AdminDashboard = () => {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-        {isLoading ? (
-          <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <StatCard
-              icon={Users}
-              label="Total vendeurs"
-              value={stats.totalUsers}
-              color="bg-blue-500"
-              trend={stats.trendUsers}
-            />
-            <StatCard
-              icon={CheckCircle}
-              label="Actifs"
-              value={stats.activeUsers}
-              color="bg-green-500"
-            />
-            <StatCard
-              icon={Clock}
-              label="En attente"
-              value={stats.pendingUsers}
-              color="bg-amber-500"
-            />
-            <StatCard
-              icon={Key}
-              label="Codes aujourd'hui"
-              value={stats.todayOtps}
-              color="bg-purple-500"
-            />
-          </div>
-        )}
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <StatCard
+            icon={Users}
+            label="Total vendeurs"
+            value={stats.totalUsers}
+            color="bg-blue-500"
+            trend={stats.trendUsers}
+          />
+          <StatCard
+            icon={CheckCircle}
+            label="Actifs"
+            value={stats.activeUsers}
+            color="bg-green-500"
+          />
+          <StatCard
+            icon={Clock}
+            label="En attente"
+            value={stats.pendingUsers}
+            color="bg-amber-500"
+          />
+          <StatCard
+            icon={Key}
+            label="Codes aujourd'hui"
+            value={stats.todayOtps}
+            color="bg-purple-500"
+          />
+        </div>
 
         {/* Search & Tabs */}
         <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border dark:border-slate-800 p-4">
@@ -293,7 +314,7 @@ const AdminDashboard = () => {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                   <Store size={20} className="text-blue-600" />
-                  Vendeurs ({filteredUsers.length || 0})
+                  Vendeurs ({filteredUsers.length})
                 </h2>
                 {activeTab === "overview" && (
                   <button
@@ -310,13 +331,13 @@ const AdminDashboard = () => {
                   <thead className="bg-gray-50 dark:bg-slate-800">
                     <tr>
                       <th
-                        className="p-3 text-left font-medium text-gray-600 dark:text-slate-400 cursor-pointer hover:text-gray-900"
-                        onClick={() => handleSort("phone")}
+                        className="p-3 text-left font-medium text-gray-600 dark:text-slate-400 cursor-pointer hover:text-gray-900 select-none"
+                        onClick={() => handleSort("phone_whatsapp")}
                       >
                         <div className="flex items-center gap-1">
                           <Phone size={14} />
                           Téléphone
-                          {sortConfig.key === "phone" &&
+                          {sortConfig.key === "phone_whatsapp" &&
                             (sortConfig.direction === "asc" ? (
                               <ChevronUp size={14} />
                             ) : (
@@ -324,8 +345,20 @@ const AdminDashboard = () => {
                             ))}
                         </div>
                       </th>
-                      <th className="p-3 text-left font-medium text-gray-600 dark:text-slate-400">
-                        Business
+                      <th
+                        className="p-3 text-left font-medium text-gray-600 dark:text-slate-400 cursor-pointer hover:text-gray-900 select-none"
+                        onClick={() => handleSort("business_name")}
+                      >
+                        <div className="flex items-center gap-1">
+                          <Store size={14} />
+                          Business
+                          {sortConfig.key === "business_name" &&
+                            (sortConfig.direction === "asc" ? (
+                              <ChevronUp size={14} />
+                            ) : (
+                              <ChevronDown size={14} />
+                            ))}
+                        </div>
                       </th>
                       <th className="p-3 text-center font-medium text-gray-600 dark:text-slate-400">
                         Type
@@ -339,13 +372,24 @@ const AdminDashboard = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y dark:divide-slate-700">
-                    {isLoading && (
-                      <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
-                      </div>
-                    )}
-                    {!isLoading &&
-                      filteredUsers.length > 0 &&
+                    {isLoading ? (
+                      <tr>
+                        <td colSpan="5" className="p-8 text-center">
+                          <div className="flex justify-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+                          </div>
+                        </td>
+                      </tr>
+                    ) : filteredUsers.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan="5"
+                          className="p-8 text-center text-gray-500 dark:text-slate-400"
+                        >
+                          Aucun vendeur trouvé
+                        </td>
+                      </tr>
+                    ) : (
                       filteredUsers
                         .slice(0, activeTab === "overview" ? 5 : undefined)
                         .map((user) => (
@@ -357,14 +401,16 @@ const AdminDashboard = () => {
                               {normalizedPhoneNumber(user.phone_whatsapp)}
                             </td>
                             <td className="p-3 text-gray-600 dark:text-slate-400">
-                              {user.business || "-"}
+                              {user.business_name || "-"}
                             </td>
                             <td className="p-3 text-center">
                               <span
                                 className={`px-2 py-1 rounded-full text-xs font-medium ${
                                   user.business_type === "TROC"
                                     ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                                    : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                                    : user.business_type === "SHOP"
+                                      ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
+                                      : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
                                 }`}
                               >
                                 {user.business_type || "VENTE"}
@@ -394,7 +440,8 @@ const AdminDashboard = () => {
                               )}
                             </td>
                           </tr>
-                        ))}
+                        ))
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -435,7 +482,7 @@ const AdminDashboard = () => {
                       <th className="p-3 text-left font-medium text-orange-900 dark:text-orange-400">
                         <div className="flex items-center gap-1">
                           <Calendar size={14} />
-                          Il y a
+                          Temps
                         </div>
                       </th>
                       <th className="p-3 text-center font-medium text-orange-900 dark:text-orange-400">
@@ -444,46 +491,70 @@ const AdminDashboard = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y dark:divide-slate-700">
-                    {isLoading && (
-                      <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
-                      </div>
-                    )}
-                    {!isLoading &&
-                      filteredOtps.length > 0 &&
+                    {isLoading ? (
+                      <tr>
+                        <td colSpan="4" className="p-8 text-center">
+                          <div className="flex justify-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600" />
+                          </div>
+                        </td>
+                      </tr>
+                    ) : filteredOtps.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan="4"
+                          className="p-8 text-center text-gray-500 dark:text-slate-400"
+                        >
+                          Aucun code OTP trouvé
+                        </td>
+                      </tr>
+                    ) : (
                       filteredOtps
                         .slice(0, activeTab === "overview" ? 5 : undefined)
-                        .map((otp) => (
-                          <tr
-                            key={otp.id}
-                            className="hover:bg-orange-50/50 dark:hover:bg-slate-800/50 transition-colors"
-                          >
-                            <td className="p-3 font-mono text-gray-900 dark:text-slate-200">
-                              {normalizedPhoneNumber(otp.phone_number)}
-                            </td>
-                            <td className="p-3">
-                              <span className="font-bold text-blue-600 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded-lg">
-                                {otp.code}
-                              </span>
-                            </td>
-                            <td className="p-3 text-gray-500 dark:text-slate-400 text-xs">
-                              {useTimeAgo(otp.updated_at)}
-                            </td>
-                            <td className="p-3 text-center">
-                              {otp.is_used ? (
-                                <span className="inline-flex items-center gap-1 text-green-600 text-xs">
-                                  <CheckCircle size={12} />
-                                  Utilisé
+                        .map((otp) => {
+                          const status = getOtpDisplayStatus(otp);
+                          const StatusIcon = status.icon;
+
+                          return (
+                            <tr
+                              key={otp.id}
+                              className="hover:bg-orange-50/50 dark:hover:bg-slate-800/50 transition-colors"
+                            >
+                              <td className="p-3 font-mono text-gray-900 dark:text-slate-200">
+                                {normalizedPhoneNumber(otp.phone_number)}
+                              </td>
+                              <td className="p-3">
+                                <span
+                                  className={`font-mono font-bold px-2 py-1 rounded-lg ${
+                                    otp.is_used
+                                      ? "bg-gray-100 text-gray-500 line-through"
+                                      : otp.status === "expired"
+                                        ? "bg-red-50 text-red-600"
+                                        : "bg-blue-50 text-blue-600"
+                                  }`}
+                                >
+                                  {otp.code || "----"}
                                 </span>
-                              ) : (
-                                <span className="inline-flex items-center gap-1 text-amber-600 text-xs">
-                                  <AlertCircle size={12} />
-                                  En attente
+                              </td>
+                              <td className="p-3 text-gray-500 dark:text-slate-400 text-xs">
+                                <div className="flex flex-col">
+                                  <span className="text-gray-400">
+                                    Il y'a {otp.time_ago || ""}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="p-3 text-center">
+                                <span
+                                  className={`inline-flex items-center gap-1 text-xs ${status.color}`}
+                                >
+                                  <StatusIcon size={12} />
+                                  {status.label}
                                 </span>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
+                              </td>
+                            </tr>
+                          );
+                        })
+                    )}
                   </tbody>
                 </table>
               </div>

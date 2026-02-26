@@ -52,7 +52,9 @@ const Home = () => {
         if (isMounted) setIsLoading(false);
       }
     };
+
     fetchProducts();
+
     return () => {
       isMounted = false;
     };

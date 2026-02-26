@@ -59,18 +59,6 @@ const Dashboard = () => {
     localStorage.removeItem("is_phone_verified");
     navigate("/login", { replace: true });
   };
-  const handleSaveEdit = async (slug, formData, isImageChanged) => {
-    try {
-      await api.patch(`/my-products/${slug}/edit/`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      toast.success("Produit modifié !");
-      setEditingProduct(null);
-      fetchData();
-    } catch (err) {
-      toast.error("Erreur de modification");
-    }
-  };
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -97,10 +85,10 @@ const Dashboard = () => {
 
   const handleAdd = async (formData) => {
     try {
-      await api.post("/my-products/create/", formData);
+      const res = await api.post("/my-products/", formData);
+      setProducts(res.data);
       toast.success("Produit ajouté !");
       setShowForm(false);
-      fetchData();
     } catch (err) {
       toast.error("Erreur lors de l'ajout");
     }
@@ -116,13 +104,15 @@ const Dashboard = () => {
         if (!window.confirm("Supprimer l'image du produit ?")) return;
       }
 
-      await api.patch(`/my-products/${slug}/edit/`, formData, {
+      // Utilisation de PUT ou PATCH sur le ViewSet
+      const res = await api.patch(`/my-products/${slug}/`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
+      // On met à jour la liste directement
+      setProducts(res.data);
       toast.success("Produit modifié !");
       setEditingProduct(null);
-      fetchData();
     } catch (err) {
       toast.error("Erreur lors de la modification");
     }
@@ -130,11 +120,20 @@ const Dashboard = () => {
 
   const handleDelete = async (slug) => {
     if (!window.confirm("Supprimer ce produit ?")) return;
+    // 1. Sauvegarde pour "Rollback" en cas d'erreur
+    const previousProducts = [...products];
+
+    // 2. MISE À JOUR OPTIMISTE : On retire le produit de la liste DIRECTEMENT
+    setProducts(products.filter((p) => p.slug !== slug));
     try {
-      await api.delete(`/my-products/${slug}/delete/`);
+      // URL simplifiée
+      const res = await api.delete(`/my-products/${slug}/`);
+      // Le ViewSet renvoie la liste restante
+      setProducts(res.data);
       toast.success("Produit supprimé");
-      fetchData();
     } catch (err) {
+      // 3. EN CAS D'ERREUR : On remet l'ancienne liste discrètement
+      setProducts(previousProducts);
       toast.error("Erreur de suppression");
     }
   };
@@ -238,7 +237,7 @@ const Dashboard = () => {
           editingProduct={editingProduct}
           onEdit={handleEditClick}
           onDelete={handleDelete}
-          onSaveEdit={handleSaveEdit}
+          onSaveEdit={handleEdit}
           onCancelEdit={() => setEditingProduct(null)}
           businessType={business?.business_type}
         />
