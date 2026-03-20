@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   MessageCircle,
   ArrowLeft,
@@ -10,6 +11,8 @@ import {
   Eye,
   EyeOff,
   ArrowRight,
+  Sparkles,
+  Phone,
 } from "lucide-react";
 import api from "../api";
 import toast from "react-hot-toast";
@@ -321,36 +324,24 @@ const Login = () => {
     }
   };
 
-  // === Succès: Stockage et redirection ===
-  // 1. Supprime l'import { data } en haut du fichier !
-
-  // 2. Modifie la fonction handleAuthSuccess
   const handleAuthSuccess = (authData) => {
-    // Renommé pour éviter le conflit avec l'import
-    // On stocke tout proprement
     localStorage.setItem("access_token", authData.access);
     localStorage.setItem("refresh_token", authData.refresh);
     localStorage.setItem("business_slug", authData.business_slug || "");
     localStorage.setItem("role", authData.role || "vendor");
-
-    // Stockage en booléen réel via JSON
     localStorage.setItem(
       "is_phone_verified",
       JSON.stringify(authData.is_phone_verified),
     );
 
-    // On change l'état visuel
     setStep(STEPS.SUCCESS);
 
-    // Utilisation d'un délai pour l'expérience utilisateur
     setTimeout(() => {
-      // On utilise replace: true pour vider l'historique du login
       navigate("/dashboard", { replace: true });
-      // Le toast doit être APRES le navigate pour être sûr qu'il s'affiche sur la nouvelle page
       setTimeout(() => toast.success("Bienvenue sur Niplan ! 🎉"), 100);
     }, 1500);
   };
-  // === Retour arrière ===
+
   const goBack = () => {
     if (step !== STEPS.PHONE && step !== STEPS.SUCCESS) {
       setStep(STEPS.PHONE);
@@ -361,7 +352,6 @@ const Login = () => {
     }
   };
 
-  // === Indice de progression (1,2,3) ===
   const getCurrentStepIndex = () => {
     switch (step) {
       case STEPS.PHONE:
@@ -377,7 +367,6 @@ const Login = () => {
     }
   };
 
-  // === Rendu des étapes ===
   const renderStepContent = () => {
     switch (step) {
       case STEPS.PHONE:
@@ -391,7 +380,7 @@ const Login = () => {
             />
 
             {error && (
-              <p className="text-sm text-red-500 text-center animate-pulse">
+              <p className="text-sm text-red-500 text-center animate-pulse font-medium">
                 {error}
               </p>
             )}
@@ -399,39 +388,37 @@ const Login = () => {
             <button
               onClick={handlePhoneSubmit}
               disabled={isLoading || phone.length < 10}
-              className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-4 rounded-2xl font-bold text-lg transition-all flex items-center justify-center gap-2"
+              className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed text-white py-4 rounded-2xl font-bold text-lg transition-all shadow-lg shadow-green-500/20 flex items-center justify-center gap-2"
             >
               {isLoading ? (
                 <Spinner />
               ) : (
                 <>
-                  Continuer<span className="text-green-200">→</span>
+                  Continuer <ArrowRight size={20} className="text-green-300" />
                 </>
               )}
             </button>
 
-            <p className="text-xs text-center text-gray-400 dark:text-slate-500">
-              En continuant, vous acceptez nos CGU et Politique de
-              confidentialité
+            <p className="text-[10px] text-center text-slate-500 uppercase tracking-widest font-bold">
+              En continuant, vous acceptez nos CGU
             </p>
           </div>
         );
 
-      // Nouvelle étape : création du mot de passe pour les nouveaux utilisateurs
       case STEPS.PASSWORD_CREATION:
         return (
           <div className="space-y-4">
-            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl mb-4">
-              <p className="text-sm text-blue-700 dark:text-blue-300 text-center">
-                🔐 Nouveau compte : définissez votre mot de passe
+            <div className="bg-blue-500/10 border border-blue-500/20 p-4 rounded-2xl mb-4">
+              <p className="text-xs text-blue-400 font-bold text-center uppercase tracking-wider">
+                🔐 Définissez votre mot de passe
               </p>
             </div>
 
-            <div className="relative">
+            <div className="relative group">
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Nouveau mot de passe"
-                className="w-full px-4 py-4 bg-gray-50 dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-700 rounded-2xl outline-none focus:border-green-500 dark:focus:border-green-400 transition-all text-gray-900 dark:text-white"
+                className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl outline-none focus:border-green-500/50 focus:bg-white/[0.07] transition-all text-white placeholder:text-slate-600"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
@@ -439,17 +426,17 @@ const Login = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
               >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
 
-            <div className="relative">
+            <div className="relative group">
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Confirmer le mot de passe"
-                className="w-full px-4 py-4 bg-gray-50 dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-700 rounded-2xl outline-none focus:border-green-500 dark:focus:border-green-400 transition-all text-gray-900 dark:text-white"
+                className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl outline-none focus:border-green-500/50 focus:bg-white/[0.07] transition-all text-white placeholder:text-slate-600"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 disabled={isLoading}
@@ -457,47 +444,33 @@ const Login = () => {
             </div>
 
             {error && (
-              <p className="text-sm text-red-500 text-center">{error}</p>
+              <p className="text-sm text-red-500 text-center font-medium">{error}</p>
             )}
 
             <button
               onClick={handlePasswordCreation}
-              disabled={
-                isLoading || password.length < 8 || password !== confirmPassword
-              }
-              className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-4 rounded-2xl font-bold text-lg transition-all flex items-center justify-center gap-2"
+              disabled={isLoading || password.length < 8 || password !== confirmPassword}
+              className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 text-white py-4 rounded-2xl font-bold text-lg transition-all shadow-lg flex items-center justify-center gap-2"
             >
-              {isLoading ? (
-                <Spinner />
-              ) : (
-                <>
-                  Continuer vers la vérification <Lock size={20} />
-                </>
-              )}
+              {isLoading ? <Spinner /> : <>Suivant <Lock size={18} /></>}
             </button>
-
-            <p className="text-xs text-center text-gray-400">
-              8 caractères minimum. Vous recevrez ensuite un code de
-              vérification.
-            </p>
           </div>
         );
 
       case STEPS.PASSWORD_SETUP:
         return (
           <div className="space-y-4">
-            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl mb-4">
-              <p className="text-sm text-blue-700 dark:text-blue-300 text-center">
-                🔒 Votre numéro est déjà vérifié. Définissez un mot de passe
-                pour sécuriser votre compte.
+            <div className="bg-indigo-500/10 border border-indigo-500/20 p-4 rounded-2xl mb-4">
+              <p className="text-xs text-indigo-400 font-bold text-center uppercase tracking-wider">
+                🔒 Sécurisez votre accès
               </p>
             </div>
 
-            <div className="relative">
+            <div className="relative group">
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Nouveau mot de passe"
-                className="w-full px-4 py-4 bg-gray-50 dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-700 rounded-2xl outline-none focus:border-green-500 dark:focus:border-green-400 transition-all text-gray-900 dark:text-white"
+                className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl outline-none focus:border-green-500/50 focus:bg-white/[0.07] transition-all text-white placeholder:text-slate-600"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
@@ -505,55 +478,41 @@ const Login = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
               >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
 
-            <div className="relative">
+            <div className="relative group">
               <input
                 type={showPassword ? "text" : "password"}
-                placeholder="Confirmer le mot de passe"
-                className="w-full px-4 py-4 bg-gray-50 dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-700 rounded-2xl outline-none focus:border-green-500 dark:focus:border-green-400 transition-all text-gray-900 dark:text-white"
+                placeholder="Confirmer"
+                className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl outline-none focus:border-green-500/50 focus:bg-white/[0.07] transition-all text-white placeholder:text-slate-600"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 disabled={isLoading}
               />
             </div>
 
-            {error && (
-              <p className="text-sm text-red-500 text-center">{error}</p>
-            )}
-
             <button
               onClick={handlePasswordSetup}
               disabled={isLoading || password.length < 8}
-              className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-4 rounded-2xl font-bold text-lg transition-all flex items-center justify-center gap-2"
+              className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white py-4 rounded-2xl font-bold text-lg transition-all shadow-lg flex items-center justify-center gap-2"
             >
-              {isLoading ? (
-                <Spinner />
-              ) : (
-                <>
-                  Créer mon mot de passe <Lock size={20} />
-                </>
-              )}
+              {isLoading ? <Spinner /> : <>Valider mon mot de passe</>}
             </button>
-
-            <p className="text-xs text-center text-gray-400">
-              8 caractères minimum. Pas de code OTP requis !
-            </p>
           </div>
         );
 
       case STEPS.PASSWORD_LOGIN:
         return (
           <div className="space-y-4">
-            <div className="relative">
+            <div className="relative group">
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Votre mot de passe"
-                className="w-full px-4 py-4 bg-gray-50 dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-700 rounded-2xl outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-all text-gray-900 dark:text-white"
+                className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl outline-none focus:border-blue-500/50 focus:bg-white/[0.07] transition-all text-white placeholder:text-slate-600"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 onKeyPress={(e) => e.key === "Enter" && handlePasswordLogin()}
@@ -563,39 +522,29 @@ const Login = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500"
               >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
 
             {error && (
-              <p className="text-sm text-red-500 text-center">{error}</p>
+              <p className="text-sm text-red-500 text-center font-medium">{error}</p>
             )}
 
             <button
               onClick={handlePasswordLogin}
               disabled={isLoading || !password}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-4 rounded-2xl font-bold text-lg transition-all flex items-center justify-center gap-2"
+              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white py-4 rounded-2xl font-bold text-lg transition-all shadow-lg flex items-center justify-center gap-2"
             >
-              {isLoading ? (
-                <Spinner />
-              ) : (
-                <>
-                  Se connecter <ArrowLeft size={20} className="rotate-180" />
-                </>
-              )}
+              {isLoading ? <Spinner /> : <>Accéder à mon espace</>}
             </button>
 
             <button
-              onClick={() => {
-                toast(
-                  "Fonctionnalité à venir: Réinitialisation du mot de passe",
-                );
-              }}
-              className="w-full text-sm text-blue-600 hover:text-blue-700"
+              onClick={() => toast("Fonctionnalité à venir")}
+              className="w-full text-xs font-bold text-slate-500 hover:text-blue-400 uppercase tracking-widest"
             >
-              Mot de passe oublié ?
+              Oublié ?
             </button>
           </div>
         );
@@ -603,87 +552,72 @@ const Login = () => {
       case STEPS.OTP_VERIFY:
         return (
           <div className="space-y-4">
-            <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-xl mb-4">
-              <p className="text-sm text-orange-700 dark:text-orange-300 text-center">
-                📱 Vérifiez votre numéro avec le code reçu sur WhatsApp
+            <div className="bg-orange-500/10 border border-orange-500/20 p-4 rounded-2xl mb-4 text-center">
+              <p className="text-xs text-orange-400 font-bold uppercase tracking-wider">
+                📱 Code envoyé sur WhatsApp
               </p>
             </div>
 
-            <div className="relative">
+            <div className="relative group">
               <input
                 ref={inputRef}
                 type="text"
                 inputMode="numeric"
-                placeholder="• • • • • •"
-                className="w-full px-4 py-4 bg-gray-50 dark:bg-slate-800 border-2 border-gray-200 dark:border-slate-700 rounded-2xl outline-none focus:border-orange-500 dark:focus:border-orange-400 transition-all text-center text-3xl font-mono tracking-[0.5em] text-gray-900 dark:text-white"
+                placeholder="6 chiffres"
+                className="w-full px-5 py-5 bg-white/5 border border-white/10 rounded-2xl outline-none focus:border-orange-500/50 transition-all text-center text-3xl font-mono tracking-[0.5em] text-white"
                 value={otpCode}
-                onChange={(e) =>
-                  setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))
-                }
+                onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                 disabled={isLoading}
               />
             </div>
 
-            {error && (
-              <p className="text-sm text-red-500 text-center">{error}</p>
-            )}
+            {error && <p className="text-sm text-red-500 text-center">{error}</p>}
 
             <button
               onClick={handleOtpVerify}
               disabled={isLoading || otpCode.length !== 6}
-              className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-4 rounded-2xl font-bold text-lg transition-all flex items-center justify-center gap-2"
+              className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-4 rounded-2xl font-bold text-lg transition-all"
             >
-              {isLoading ? (
-                <Spinner />
-              ) : (
-                <>
-                  Vérifier et créer mon compte <Zap size={20} />
-                </>
-              )}
+              {isLoading ? <Spinner /> : "Vérification finale"}
             </button>
 
-            <div className="text-center space-y-2">
+            <div className="text-center">
               {countdown > 0 ? (
-                <p className="text-sm text-gray-500">
-                  Renvoyer dans{" "}
-                  <span className="font-mono font-bold">{countdown}s</span>
+                <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">
+                  Renvoyer dans <span className="text-white">{countdown}s</span>
                 </p>
               ) : (
                 <button
                   onClick={resendOtp}
-                  disabled={isLoading}
-                  className="text-sm font-medium text-green-600 hover:text-green-700 underline"
+                  className="text-xs font-bold text-green-500 hover:text-green-400 transition-colors uppercase tracking-widest"
                 >
                   Renvoyer le code
                 </button>
               )}
             </div>
-
-            <div
-              className="w-full disabled:cursor-not-allowed text-gray-700 py-1 rounded-2xl font-bold text-lg transition-all flex items-center justify-center gap-2 cursor-pointer color-gray-500 hover:text-gray-900 disabled:text-gray-300"
+            
+             <button
               onClick={handleOtpVerifyLater}
               disabled={isLoading}
+              className="w-full py-2 text-xs font-bold text-slate-600 hover:text-slate-400 uppercase tracking-widest flex items-center justify-center gap-2"
             >
-              {isLoading ? (
-                <Spinner />
-              ) : (
-                <>
-                  Verifier après <ArrowRight size={20} />
-                </>
-              )}
-            </div>
+              Continuer sans vérifier <ArrowRight size={14} />
+            </button>
           </div>
         );
 
       case STEPS.SUCCESS:
         return (
-          <div className="text-center py-8">
-            <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
-              <Zap size={32} className="text-green-600" />
-            </div>
-            <p className="text-gray-600 dark:text-slate-400">
-              Connexion réussie ! Redirection...
-            </p>
+          <div className="text-center py-12">
+            <motion.div 
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="w-24 h-24 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-green-500/20"
+            >
+              <Zap size={40} className="text-green-500 fill-green-500" />
+            </motion.div>
+            <h3 className="text-xl font-black text-white mb-2 tracking-tight">Accès Autorisé !</h3>
+            <p className="text-slate-400 text-sm">Chargement de votre terminal de vente...</p>
           </div>
         );
 
@@ -692,164 +626,161 @@ const Login = () => {
     }
   };
 
-  // === Helpers UI ===
   const getStepIcon = () => {
     switch (step) {
-      case STEPS.PHONE:
-        return <MessageCircle size={28} className="text-green-600" />;
+      case STEPS.PHONE: return <Phone size={22} />;
       case STEPS.PASSWORD_CREATION:
       case STEPS.PASSWORD_SETUP:
-        return <Lock size={28} className="text-blue-600" />;
-      case STEPS.PASSWORD_LOGIN:
-        return <Lock size={28} className="text-blue-600" />;
-      case STEPS.OTP_VERIFY:
-        return <Shield size={28} className="text-orange-600" />;
-      case STEPS.SUCCESS:
-        return <Zap size={28} className="text-yellow-500" />;
-      default:
-        return <MessageCircle size={28} className="text-green-600" />;
+      case STEPS.PASSWORD_LOGIN: return <Lock size={22} />;
+      case STEPS.OTP_VERIFY: return <MessageCircle size={22} />;
+      case STEPS.SUCCESS: return <Sparkles size={22} />;
+      default: return <MessageCircle size={22} />;
     }
   };
 
   const getStepTitle = () => {
     switch (step) {
-      case STEPS.PHONE:
-        return "Connexion sécurisée";
+      case STEPS.PHONE: return "Bienvenue Pro";
       case STEPS.PASSWORD_CREATION:
-        return "Définir votre mot de passe";
-      case STEPS.PASSWORD_SETUP:
-        return "Définir votre mot de passe";
-      case STEPS.PASSWORD_LOGIN:
-        return "Entrez votre mot de passe";
-      case STEPS.OTP_VERIFY:
-        return "Vérifiez votre numéro";
-      case STEPS.SUCCESS:
-        return "C'est parti !";
-      default:
-        return "";
+      case STEPS.PASSWORD_SETUP: return "Sécurité";
+      case STEPS.PASSWORD_LOGIN: return "Ravis de vous revoir";
+      case STEPS.OTP_VERIFY: return "Vérification";
+      case STEPS.SUCCESS: return "Prêt à décoller";
+      default: return "";
     }
   };
 
   const getStepSubtitle = () => {
     switch (step) {
-      case STEPS.PHONE:
-        return "Entrez votre numéro pour commencer";
-      case STEPS.PASSWORD_CREATION:
-        return "Choisissez un mot de passe sécurisé";
-      case STEPS.PASSWORD_SETUP:
-        return "Votre numéro est déjà vérifié 🔒";
-      case STEPS.PASSWORD_LOGIN:
-        return `Connectez-vous à ${phone}`;
-      case STEPS.OTP_VERIFY:
-        return `Code envoyé à ${phone}`;
-      case STEPS.SUCCESS:
-        return "";
-      default:
-        return "";
+      case STEPS.PHONE: return "Entrez votre terminal mobile";
+      case STEPS.PASSWORD_CREATION: return "Créez votre clé d'accès";
+      case STEPS.PASSWORD_SETUP: return "Définissez votre accès sécurisé";
+      case STEPS.PASSWORD_LOGIN: return "Identifiez-vous pour continuer";
+      case STEPS.OTP_VERIFY: return `Code envoyé au ${phone}`;
+      case STEPS.SUCCESS: return "Votre dashboard est prêt.";
+      default: return "";
     }
   };
 
   return (
-    <div className="from-gray-50 to-gray-100 dark:from-slate-950 dark:to-slate-900 flex items-center justify-center mt-13 mx-auto">
-      <div className="w-full max-w-full sm:max-w-lg lg:max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-center">
-        {/* Côté gauche - Marketing */}
-        <div className="hidden lg:flex flex-col space-y-8 p-8">
-          <div>
-            <h1 className="text-4xl font-black text-gray-900 dark:text-white mb-4">
-              Vendez sur <span className="text-green-600">Niplan</span>
-            </h1>
-            <p className="text-lg text-gray-600 dark:text-slate-400">
-              La marketplace #1 en RDC. Rejoignez +500 vendeurs qui gagnent déjà
-              de l'argent.
-            </p>
-          </div>
+    <div className="relative min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 overflow-hidden font-sans selection:bg-green-500/30">
+      {/* Background Animated Nebulas */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <motion.div 
+          animate={{ x: [0, 50, 0], y: [0, 30, 0], scale: [1, 1.1, 1] }}
+          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-green-500/10 rounded-full blur-[140px]" 
+        />
+        <motion.div 
+          animate={{ x: [0, -40, 0], y: [0, -20, 0], scale: [1, 1.2, 1] }}
+          transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-blue-600/10 rounded-full blur-[140px]" 
+        />
+      </div>
 
-          <div className="space-y-4">
-            {FEATURES.map(({ icon: Icon, text }) => (
-              <div
-                key={text}
-                className="flex items-center gap-3 text-gray-700 dark:text-slate-300"
-              >
-                <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                  <Icon size={20} className="text-green-600" />
-                </div>
-                <span className="font-medium">{text}</span>
+      {/* Main Auth Vault */}
+      <div className="relative z-10 w-full max-w-lg">
+        {/* LOGO / BRANDING */}
+        <div className="text-center mb-10">
+           <Link to="/" className="group inline-flex items-center gap-2">
+              <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.3)] group-hover:scale-110 transition-transform duration-300">
+                 <Zap size={20} className="text-white fill-white" />
               </div>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-4 pt-4">
-            <div className="flex -space-x-3">
-              {AVATAR_URLS.map((url, i) => (
-                <img
-                  key={i}
-                  src={url}
-                  alt={`Vendeur ${i + 1}`}
-                  className="w-10 h-10 rounded-full border-2 border-white dark:border-slate-800 object-cover"
-                  loading="lazy"
-                />
-              ))}
-            </div>
-            <p className="text-sm text-gray-600 dark:text-slate-400">
-              <span className="font-bold text-gray-900 dark:text-white">
-                100+
-              </span>{" "}
-              vendeurs ce mois
-            </p>
-          </div>
+              <h1 className="text-3xl font-black text-white tracking-tighter">
+                Niplan<span className="text-green-500">.</span>
+              </h1>
+           </Link>
         </div>
 
-        {/* Côté droit - Formulaire */}
-        <div className="w-full max-w-md mx-auto bg-white dark:bg-slate-900 rounded-3xl shadow-2xl p-8 border border-gray-100 dark:border-slate-800">
-          {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-6">
+        <motion.div
+           initial={{ opacity: 0, y: 30 }}
+           animate={{ opacity: 1, y: 0 }}
+           className="glass-card rounded-[2.5rem] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/5"
+        >
+          {/* Header Progress Bar */}
+          <div className="h-1.5 w-full bg-white/5 flex">
+             {[1, 2, 3].map((i) => (
+               <motion.div 
+                 key={i}
+                 className={`h-full flex-1 transition-all duration-700 ${i <= getCurrentStepIndex() ? 'bg-gradient-to-r from-green-500 to-emerald-400' : 'bg-transparent'}`}
+               />
+             ))}
+          </div>
+
+          <div className="p-8 sm:p-12">
+            {/* Header / Navigation back */}
+            <div className="flex items-center gap-4 mb-8">
               {step !== STEPS.PHONE && step !== STEPS.SUCCESS && (
                 <button
                   onClick={goBack}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full transition-colors"
+                  className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl text-slate-400 hover:text-white transition-all border border-white/5 active:scale-95"
                 >
-                  <ArrowLeft size={20} className="text-gray-500" />
+                  <ArrowLeft size={18} />
                 </button>
               )}
-
-              {/* Indicateur de progression à 3 points */}
-              <div className="flex gap-2 mx-auto">
-                {[1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className={`w-8 h-1.5 rounded-full transition-colors ${
-                      i <= getCurrentStepIndex()
-                        ? "bg-green-500"
-                        : "bg-gray-200 dark:bg-slate-700"
-                    }`}
-                  />
-                ))}
+              <div className="flex-1">
+                 <h2 className="text-2xl font-black text-white tracking-tight leading-none mb-2">
+                    {getStepTitle()}
+                 </h2>
+                 <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest">
+                    {getStepSubtitle()}
+                 </p>
               </div>
-
-              {step !== STEPS.PHONE && step !== STEPS.SUCCESS && (
-                <div className="w-10" />
-              )}
+              <div className="w-14 h-14 bg-gradient-to-br from-white/10 to-transparent rounded-2xl flex items-center justify-center text-green-400 border border-white/10 shadow-inner">
+                 {getStepIcon()}
+              </div>
             </div>
 
-            <div className="text-center">
-              <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                {getStepIcon()}
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                {getStepTitle()}
-              </h2>
-              <p className="text-gray-500 dark:text-slate-400 mt-2 text-sm">
-                {getStepSubtitle()}
-              </p>
+            {/* Dynamics / Forms with transitions */}
+            <div className="min-h-[300px] flex flex-col justify-center">
+               <AnimatePresence mode="wait">
+                  <motion.div
+                    key={step}
+                    initial={{ opacity: 0, x: 20, scale: 0.98 }}
+                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                    exit={{ opacity: 0, x: -20, scale: 0.98 }}
+                    transition={{ duration: 0.4, type: "spring", stiffness: 100 }}
+                  >
+                     {renderStepContent()}
+                  </motion.div>
+               </AnimatePresence>
             </div>
           </div>
 
-          {/* Contenu dynamique */}
-          {renderStepContent()}
+          {/* Footer of the vault */}
+          <div className="px-12 py-6 bg-white/[0.02] border-t border-white/5 flex items-center justify-between">
+             <div className="flex items-center gap-2 text-slate-500 text-[9px] font-black uppercase tracking-[0.2em]">
+                <Shield size={10} className="text-green-500" />
+                Auth Sécurisée
+             </div>
+             <p className="text-[9px] text-slate-600 font-bold uppercase tracking-widest">© Niplan Global</p>
+          </div>
+        </motion.div>
+
+        {/* Support / Quick Help */}
+        <div className="mt-10 flex flex-col items-center gap-4">
+           <div className="flex justify-center gap-8">
+              <button className="text-[10px] font-black text-slate-600 hover:text-white transition-colors uppercase tracking-[0.2em]">CGU</button>
+              <button className="text-[10px] font-black text-slate-600 hover:text-white transition-colors uppercase tracking-[0.2em]">Sécurité</button>
+              <button className="text-[10px] font-black text-orange-500/60 hover:text-orange-400 transition-colors uppercase tracking-[0.2em]">Assistance</button>
+           </div>
+           
+           <div className="h-4 w-px bg-gradient-to-b from-white/10 to-transparent" />
+           
+           <div className="flex items-center gap-4">
+             <div className="flex -space-x-2">
+                {AVATAR_URLS.map((url, i) => (
+                  <img key={i} src={url} alt="User" className="w-6 h-6 rounded-full border border-slate-900 object-cover" />
+                ))}
+             </div>
+             <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Rejoignez +500 experts</p>
+           </div>
         </div>
       </div>
-      <ChatSupport />
+      
+      <div className="hidden">
+        <ChatSupport />
+      </div>
     </div>
   );
 };
