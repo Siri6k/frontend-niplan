@@ -1,5 +1,7 @@
+// components/VerifyPhoneModal.jsx
 import React, { useEffect, useState, useRef } from "react";
-import { X, ShieldCheck, Smartphone, Send, Loader2 } from "lucide-react";
+import { X, ShieldCheck, Smartphone, Send, Loader2, Zap } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import api from "../api";
 import toast from "react-hot-toast";
 
@@ -8,29 +10,21 @@ export default function VerifyPhoneModal({ isOpen, onClose, phone = "" }) {
   const [isLoading, setIsLoading] = useState(false);
   const [resendSeconds, setResendSeconds] = useState(0);
   const inputRef = useRef(null);
-  const [isShaking, setIsShaking] = useState(false); // <--- Nouvel état
+  const [isShaking, setIsShaking] = useState(false);
 
-  // Reset au montage/démontage
   useEffect(() => {
     if (isOpen) {
       setCode("");
-      setResendSeconds(0);
       setTimeout(() => inputRef.current?.focus(), 100);
+      handleSend(); // Envoi automatique
     }
-  }, [isOpen, phone]);
+  }, [isOpen]);
 
-  useEffect(() => {
-    handleSend(); // Envoi automatique à l'ouverture
-  }, []);
-
-  // Timer pour le renvoi
   useEffect(() => {
     if (resendSeconds <= 0) return;
     const t = setInterval(() => setResendSeconds((s) => s - 1), 1000);
     return () => clearInterval(t);
   }, [resendSeconds]);
-
-  if (!isOpen) return null;
 
   const maskPhone = (p) => {
     if (!p) return "";
@@ -41,11 +35,8 @@ export default function VerifyPhoneModal({ isOpen, onClose, phone = "" }) {
 
   const handleSend = async () => {
     setIsLoading(true);
-    setCode("");
     try {
-      const res = await api.post("/phone/request-otp/", {
-        phone_whatsapp: phone,
-      });
+      const res = await api.post("/phone/request-otp/", { phone_whatsapp: phone });
       toast.success(res.data.message || "Code envoyé sur WhatsApp !");
       setResendSeconds(60);
     } catch (err) {
@@ -57,7 +48,7 @@ export default function VerifyPhoneModal({ isOpen, onClose, phone = "" }) {
 
   const handleVerify = async () => {
     if (code.length < 6) {
-      triggerShake(); // Secoue si le champ est vide ou trop court
+      triggerShake();
       toast.error("Code incomplet");
       return;
     }
@@ -67,131 +58,135 @@ export default function VerifyPhoneModal({ isOpen, onClose, phone = "" }) {
         phone_whatsapp: phone,
         otp_code: code,
       });
-      const { access, refresh, business_slug, role, is_phone_verified } =
-        res.data;
+      const { access, refresh, business_slug, role, is_phone_verified } = res.data;
       localStorage.setItem("access_token", access);
       localStorage.setItem("refresh_token", refresh);
       localStorage.setItem("business_slug", business_slug || "");
       localStorage.setItem("role", role || "vendor");
-      localStorage.setItem(
-        "is_phone_verified",
-        is_phone_verified === true ? "true" : "false",
-      );
+      localStorage.setItem("is_phone_verified", is_phone_verified === true ? "true" : "false");
       toast.success("Numéro vérifié avec succès ! 🎉");
       setTimeout(onClose, 500);
     } catch (err) {
-      triggerShake(); // <--- Secoue en cas d'erreur API
+      triggerShake();
       toast.error("Code incorrect");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Fonction pour déclencher l'animation
   const triggerShake = () => {
     setIsShaking(true);
-    setTimeout(() => setIsShaking(false), 400); // On retire la classe après l'animation
+    setTimeout(() => setIsShaking(false), 400);
   };
 
-  if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      {/* Overlay avec flou */}
-      <div
-        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
-        onClick={onClose}
-      />
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          {/* Overlay */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-slate-950/80 backdrop-blur-md"
+            onClick={onClose}
+          />
 
-      {/* Card Modal */}
-      {/* Ajout de la classe conditionnelle animate-shake ici */}
-      <div
-        className={`relative w-full max-w-md transform rounded-3xl bg-white dark:bg-slate-900 p-8 shadow-2xl transition-all ${
-          isShaking
-            ? "animate-shake border-2 border-red-500"
-            : "border-2 border-transparent"
-        }`}
-      >
-        {/* Bouton Fermer */}
-        <button
-          onClick={onClose}
-          className="absolute right-4 top-4 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
-        >
-          <X size={20} />
-        </button>
-
-        <div className="text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-green-100 dark:bg-green-900/30">
-            <ShieldCheck className="h-8 w-8 text-green-600 dark:text-green-400" />
-          </div>
-
-          <h3 className="text-2xl font-bold text-slate-900 dark:text-white">
-            Vérification WhatsApp
-          </h3>
-          <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-            Un code de sécurité est nécessaire pour valider votre numéro.
-          </p>
-        </div>
-
-        <div className="mt-8 space-y-6">
-          {/* Section Numéro */}
-          <div className="flex items-center justify-between rounded-2xl bg-slate-50 dark:bg-slate-800/50 p-4 border border-slate-100 dark:border-slate-800">
-            <div className="flex items-center gap-3">
-              <Smartphone className="text-slate-400" size={20} />
-              <span className="font-mono font-bold text-slate-700 dark:text-slate-200">
-                {maskPhone(phone)}
-              </span>
-            </div>
-            <button
-              onClick={handleSend}
-              disabled={isLoading || resendSeconds > 0}
-              className="text-sm font-bold text-blue-600 hover:text-blue-700 disabled:text-slate-400 transition-colors"
-            >
-              {resendSeconds > 0 ? `Renvoyer (${resendSeconds}s)` : "Envoyer"}
-            </button>
-          </div>
-
-          {/* Input OTP */}
-          <div>
-            <label className="block text-center text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">
-              Entrez le code reçu
-            </label>
-            <input
-              ref={inputRef}
-              type="text"
-              inputMode="numeric"
-              value={code}
-              onChange={(e) =>
-                setCode(e.target.value.replace(/\D/g, "").slice(0, 6))
-              }
-              placeholder="••••••"
-              className="w-full bg-transparent text-center text-4xl font-bold tracking-[0.5em] text-slate-900 dark:text-white outline-none placeholder:text-slate-200 dark:placeholder:text-slate-800"
-            />
-          </div>
-
-          {/* Actions */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Modal */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ 
+               opacity: 1, 
+               scale: 1, 
+               y: 0,
+               x: isShaking ? [0, -10, 10, -10, 10, 0] : 0
+            }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ duration: 0.3 }}
+            className={`relative w-full max-w-md glass-card rounded-[2.5rem] p-8 sm:p-10 border-2 ${isShaking ? 'border-red-500/50 shadow-[0_0_40px_rgba(239,68,68,0.2)]' : 'border-white/10 shadow-3xl'}`}
+          >
             <button
               onClick={onClose}
-              className="rounded-2xl border-2 border-slate-100 dark:border-slate-800 py-4 font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
+              className="absolute right-6 top-6 p-2 text-slate-500 hover:text-white transition-all bg-white/5 rounded-xl border border-white/5 active:scale-90"
             >
-              Annuler
+              <X size={18} />
             </button>
-            <button
-              onClick={handleVerify}
-              disabled={isLoading || code.length < 5}
-              className="flex items-center justify-center gap-2 rounded-2xl bg-green-600 py-4 font-bold text-white shadow-lg shadow-green-200 dark:shadow-none hover:bg-green-700 disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:text-slate-400 transition-all"
-            >
-              {isLoading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                <>
-                  Vérifier <Send size={18} />
-                </>
-              )}
-            </button>
-          </div>
+
+            <div className="text-center mb-8">
+              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-green-500/10 border border-green-500/20 text-green-500 shadow-inner">
+                <ShieldCheck size={36} />
+              </div>
+
+              <h3 className="text-2xl font-black text-white tracking-tight leading-none mb-2">
+                Sécurité WhatsApp
+              </h3>
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+                Validation requise pour {maskPhone(phone)}
+              </p>
+            </div>
+
+            <div className="space-y-8">
+              {/* OTP Input Section */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-center px-4 py-3 bg-white/5 rounded-2xl border border-white/5">
+                   <div className="flex items-center gap-2">
+                      <Smartphone size={14} className="text-slate-500" />
+                      <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Code de Session</span>
+                   </div>
+                   <button
+                     onClick={handleSend}
+                     disabled={isLoading || resendSeconds > 0}
+                     className="text-[10px] font-black text-blue-500 hover:text-blue-400 disabled:text-slate-700 uppercase tracking-widest transition-colors"
+                   >
+                     {resendSeconds > 0 ? `Renvoyer (${resendSeconds}s)` : "Renvoyer maintenant"}
+                   </button>
+                </div>
+
+                <div className="relative">
+                   <input
+                     ref={inputRef}
+                     type="text"
+                     inputMode="numeric"
+                     value={code}
+                     onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                     placeholder="000 000"
+                     className="w-full bg-transparent text-center text-5xl font-black tracking-[0.2em] text-white outline-none placeholder:text-slate-800 selection:bg-green-500/30 font-mono"
+                   />
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={handleVerify}
+                  disabled={isLoading || code.length < 5}
+                  className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white py-5 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-lg shadow-green-500/20 active:scale-95 transition-all group disabled:opacity-50 disabled:from-slate-800 disabled:to-slate-800"
+                >
+                  {isLoading ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <>
+                      <Zap size={18} className="group-hover:fill-white transition-all" />
+                      Confirmer la Vérification
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={onClose}
+                  className="w-full py-4 text-[10px] font-black text-slate-600 hover:text-slate-400 uppercase tracking-[0.3em] transition-colors"
+                >
+                  Peut-être plus tard
+                </button>
+              </div>
+            </div>
+            
+            {/* Security Badge */}
+            <div className="mt-8 pt-6 border-t border-white/5 flex items-center justify-center gap-2 text-[9px] text-slate-700 font-bold uppercase tracking-widest">
+               <ShieldCheck size={10} /> Chiffrement Bout-en-Bout
+            </div>
+          </motion.div>
         </div>
-      </div>
-    </div>
+      )}
+    </AnimatePresence>
   );
 }

@@ -1,8 +1,8 @@
-import React, { useState } from "react";
-import api from "../api";
+import React, { useState, useRef } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import { Save } from "lucide-react";
+import { Save, Camera, Store, LayoutGrid, MapPin, Info, Zap } from "lucide-react";
+import { motion } from "framer-motion";
 
 const BusinessSettings = ({ businessData, onUpdate }) => {
   const [name, setName] = useState(businessData.name);
@@ -10,17 +10,19 @@ const BusinessSettings = ({ businessData, onUpdate }) => {
   const [description, setDescription] = useState(businessData.description);
   const [logo, setLogo] = useState(null);
   const [businessType, setBusinessType] = useState(
-    businessData.business_type || "boutique",
+    businessData.business_type || "SHOP",
   );
   const [preview, setPreview] = useState(businessData.logo);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
 
   const handleLogoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       setLogo(file);
       setPreview(URL.createObjectURL(file));
+      toast.info("Aperçu du logo actualisé");
     }
   };
 
@@ -31,110 +33,135 @@ const BusinessSettings = ({ businessData, onUpdate }) => {
     const formData = new FormData();
     formData.append("name", name);
     formData.append("description", description);
-    formData.append("business_type", businessType); // <-- Ajout ici
+    formData.append("business_type", businessType);
     formData.append("location", location);
     if (logo) formData.append("logo", logo);
 
     try {
-      // On appelle la fonction du parent et on attend le résultat
       const updatedBusiness = await onUpdate(formData);
-      localStorage.setItem("business_slug", updatedBusiness.slug); // Met à jour le slug en localStorage
-      // Navigation vers le nouveau slug si besoin
-      navigate(`/b/${updatedBusiness.slug}`);
+      localStorage.setItem("business_slug", updatedBusiness.slug);
+      setTimeout(() => {
+        navigate(`/b/${updatedBusiness.slug}`);
+      }, 500);
     } catch (error) {
-      // L'erreur est déjà gérée par le toast du parent
+      // Erreur gérée par le parent
     } finally {
       setLoading(false);
     }
   };
 
+  const inputClasses = "w-full p-4 bg-white/5 border border-white/5 rounded-2xl outline-none focus:bg-white/[0.08] focus:border-green-500/30 text-white text-sm placeholder:text-slate-600 transition-all font-medium";
+  const labelClasses = "text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2 mb-1.5 flex items-center gap-2";
+
   return (
-    <div className="max-w-md mx-auto p-6 bg-white rounded-2xl shadow-sm border border-gray-100 dark:bg-slate-900 dark:border-slate-800">
-      <form onSubmit={handleSave} className="space-y-5">
-        {/* Section Logo */}
-        <div className="flex flex-col items-center">
-          <div className="relative w-24 h-24 mb-2">
-            <img
-              src={preview || "https://via.placeholder.com/100"}
-              className="w-full h-full rounded-full object-cover border-2 border-green-500"
-              alt="Logo Business"
-            />
-            <label className="absolute bottom-0 right-0 bg-green-600 p-2 rounded-full cursor-pointer shadow-lg">
-              <span className="text-white text-xs">📷</span>
-              <input
-                type="file"
-                className="hidden"
-                onChange={handleLogoChange}
-                accept="image/*"
-              />
-            </label>
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="glass-card rounded-[2.5rem] p-8 sm:p-12 border border-white/10 shadow-3xl relative overflow-hidden max-w-2xl mx-auto"
+    >
+      <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/5 blur-[50px] -z-10" />
+
+      <form onSubmit={handleSave} className="space-y-8">
+        {/* Section Logo Profile */}
+        <div className="flex flex-col items-center mb-10">
+          <div className="relative group w-32 h-32 mb-4">
+             <div className="absolute inset-0 bg-green-500/20 rounded-[2.5rem] blur-xl opacity-0 group-hover:opacity-100 transition-all" />
+             <div className="relative w-full h-full rounded-[2.5rem] border-2 border-dashed border-white/10 p-1.5">
+                <img
+                  src={preview || "https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"}
+                  className="w-full h-full rounded-[2rem] object-cover border border-white/5 transition-transform group-hover:scale-[0.98]"
+                  alt="Logo"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute bottom-1 right-1 bg-green-500 text-white p-2.5 rounded-2xl shadow-xl hover:scale-110 active:scale-90 transition-all border-4 border-slate-900"
+                >
+                  <Camera size={14} />
+                </button>
+             </div>
+             <input
+               ref={fileInputRef}
+               type="file"
+               className="hidden"
+               onChange={handleLogoChange}
+               accept="image/*"
+             />
           </div>
-          <p className="text-xs text-gray-500">
-            Cliquez pour changer votre logo
-          </p>
+          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Identité Visuelle</p>
         </div>
 
-        {/* Champs texte */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-slate-200">
-            Nom du business
-          </label>
-          <input
-            type="text"
-            className="mt-1 w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none dark:bg-slate-800 dark:border-slate-700"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
+        {/* Inputs Grid */}
+        <div className="space-y-6">
+           <div className="space-y-1.5">
+              <label className={labelClasses}><Store size={12} className="text-green-500" /> Nom de l'Enseigne</label>
+              <input
+                type="text"
+                placeholder="Ex: Boutique Elite Kinshasa"
+                required
+                className={inputClasses}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+           </div>
+
+           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="space-y-1.5">
+                 <label className={labelClasses}><LayoutGrid size={12} className="text-blue-500" /> Secteur d'Activité</label>
+                 <select
+                   value={businessType}
+                   onChange={(e) => setBusinessType(e.target.value)}
+                   className="w-full p-4 bg-white/5 border border-white/5 rounded-2xl outline-none text-white text-xs font-black uppercase tracking-widest focus:border-green-500/30"
+                 >
+                   <option value="SHOP">🛍️ Boutique (Vente)</option>
+                   <option value="IMMO">🏠 Immobilier (Location)</option>
+                   <option value="TROC">🔄 Troc (Échange)</option>
+                 </select>
+              </div>
+
+              <div className="space-y-1.5">
+                 <label className={labelClasses}><MapPin size={12} className="text-red-500" /> Localisation</label>
+                 <input
+                   type="text"
+                   placeholder="Ville, Quartier, RDC"
+                   className={inputClasses}
+                   value={location}
+                   onChange={(e) => setLocation(e.target.value)}
+                 />
+              </div>
+           </div>
+
+           <div className="space-y-1.5">
+              <label className={labelClasses}><Info size={12} className="text-orange-500" /> Bio / Description</label>
+              <textarea
+                rows="3"
+                placeholder="Présentez votre boutique en quelques mots..."
+                className={`${inputClasses} resize-none min-h-[100px]`}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+              <p className="text-[9px] text-slate-700 font-bold uppercase tracking-widest ml-2">
+                Sera affiché publiquement sur votre boutique.
+              </p>
+           </div>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-slate-200">
-            Type d'activité
-          </label>
-          <select
-            value={businessType}
-            onChange={(e) => setBusinessType(e.target.value)}
-            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none dark:bg-slate-800 dark:border-slate-700 dark:text-white"
-          >
-            <option value="SHOP">🛍️ Boutique (Vente générale)</option>
-            <option value="IMMO">🏠 Immobilier (Vente/Location)</option>
-            <option value="TROC">🔄 Troc (Échange d'articles)</option>
-          </select>
-          <p className="text-[10px] text-gray-400 mt-1 ml-1">
-            Cela aide les clients à trouver votre business plus facilement.
-          </p>
+
+        <div className="pt-6">
+           <button
+             type="submit"
+             disabled={loading}
+             className="w-full flex items-center justify-center gap-3 py-5 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-black text-xs uppercase tracking-[0.2em] rounded-[1.5rem] shadow-lg shadow-green-500/20 hover:scale-[1.01] active:scale-95 transition-all disabled:opacity-50 group"
+           >
+             {loading ? <Zap size={18} className="animate-spin" /> : (
+                <>
+                  <Save size={18} className="group-hover:rotate-12 transition-transform" />
+                  Enregistrer les modifications
+                </>
+             )}
+           </button>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-slate-200">
-            Description (Bio)
-          </label>
-          <textarea
-            rows="3"
-            placeholder="Ex: Vente de téléphones originaux à Kinshasa..."
-            className="mt-1 w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none dark:bg-slate-800 dark:border-slate-700"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-slate-200">
-            Ville ou localisation
-          </label>
-          <input
-            type="text"
-            className="mt-1 w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none dark:bg-slate-800 dark:border-slate-700"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full py-4 bg-black text-white font-bold rounded-xl hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Enregistrer <Save size={16} className="inline ml-2" />
-        </button>
       </form>
-    </div>
+    </motion.div>
   );
 };
 
