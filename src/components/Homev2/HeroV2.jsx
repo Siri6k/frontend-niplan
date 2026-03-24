@@ -10,7 +10,7 @@ const HeroV2 = () => {
   } catch {}
 
   return (
-    <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden bg-slate-950 px-4 pt-20 pb-16 rounded-b-[3rem] lg:rounded-b-[5rem]">
+    <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden dark:bg-slate-950 px-4 pt-20 pb-16 rounded-b-[3rem] lg:rounded-b-[5rem]">
       {/* Background Animated Gradients */}
       <div className="absolute inset-0 z-0">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-green-500/20 rounded-full blur-[120px] animate-pulse" />
@@ -27,12 +27,12 @@ const HeroV2 = () => {
         >
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-6 animate-bounce-slow">
             <Sparkles size={14} className="text-yellow-400" />
-            <span className="text-xs font-semibold text-slate-300 uppercase tracking-widest">
+            <span className="text-xs font-semibold text-slate-500  dark:text-slate-300 uppercase tracking-widest">
               L'élite du commerce en RDC
             </span>
           </div>
 
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-black text-white leading-[1.1] mb-6 tracking-tight">
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-black dark:text-white leading-[1.1] mb-6 tracking-tight">
             Propulsez votre <br />
             <span className="text-gradient-green">Marque</span> à un <br />
             niveau <span className="italic font-serif">Supérieur</span>.
@@ -68,8 +68,14 @@ const HeroV2 = () => {
             <div className="flex items-center gap-4 px-4 py-2">
               <div className="flex -space-x-2">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="w-8 h-8 rounded-full border-2 border-slate-950 bg-slate-800 flex items-center justify-center text-[10px] text-white overflow-hidden">
-                    <img src={`https://i.pravatar.cc/100?u=${i+10}`} alt="user" />
+                  <div
+                    key={i}
+                    className="w-8 h-8 rounded-full border-2 border-slate-950 bg-slate-800 flex items-center justify-center text-[10px] text-white overflow-hidden"
+                  >
+                    <img
+                      src={`https://i.pravatar.cc/100?u=${i + 10}`}
+                      alt="user"
+                    />
                   </div>
                 ))}
               </div>
@@ -77,7 +83,9 @@ const HeroV2 = () => {
                 <div className="flex items-center gap-1 text-yellow-400">
                   {"★".repeat(5)}
                 </div>
-                <p className="text-[10px] text-slate-500 font-medium">+500 vendeurs actifs</p>
+                <p className="text-[10px] text-slate-500 font-medium">
+                  +500 vendeurs actifs
+                </p>
               </div>
             </div>
           </div>
@@ -98,14 +106,17 @@ const HeroV2 = () => {
               <div className="h-16 bg-green-600 flex items-center px-6 gap-3 pt-6">
                 <div className="w-8 h-8 rounded-full bg-white/20" />
                 <div className="flex-1">
-                    <div className="h-2 w-20 bg-white/40 rounded-full mb-1" />
-                    <div className="h-1.5 w-12 bg-white/20 rounded-full" />
+                  <div className="h-2 w-20 bg-white/40 rounded-full mb-1" />
+                  <div className="h-1.5 w-12 bg-white/20 rounded-full" />
                 </div>
               </div>
               {/* Fake Content Cards */}
               <div className="p-4 space-y-4">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="p-3 bg-slate-900 rounded-2xl border border-white/5">
+                  <div
+                    key={i}
+                    className="p-3 bg-slate-900 rounded-2xl border border-white/5"
+                  >
                     <div className="w-full h-32 bg-slate-800 rounded-xl mb-3" />
                     <div className="h-3 w-3/4 bg-slate-700 rounded-full mb-2" />
                     <div className="h-2 w-1/2 bg-slate-800 rounded-full" />
@@ -128,7 +139,9 @@ const HeroV2 = () => {
                 <Zap size={20} />
               </div>
               <div>
-                <p className="text-[10px] text-slate-400 uppercase font-bold tracking-tighter">Ventes directes</p>
+                <p className="text-[10px] text-slate-400 uppercase font-bold tracking-tighter">
+                  Ventes directes
+                </p>
                 <p className="text-xl font-black text-white">+240%</p>
               </div>
             </div>
@@ -137,7 +150,12 @@ const HeroV2 = () => {
           {/* Floating Element 2 - Verification */}
           <motion.div
             animate={{ y: [0, 15, 0] }}
-            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+            transition={{
+              duration: 5,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 1,
+            }}
             className="absolute bottom-32 -left-8 glass-card p-4 rounded-2xl border border-white/10"
           >
             <div className="flex items-center gap-3">
@@ -145,8 +163,12 @@ const HeroV2 = () => {
                 <ShieldCheck size={20} />
               </div>
               <div>
-                <p className="text-[10px] text-slate-400 uppercase font-bold tracking-tighter">Confiance</p>
-                <p className="text-sm font-bold text-white">Boutique Vérifiée</p>
+                <p className="text-[10px] text-slate-400 uppercase font-bold tracking-tighter">
+                  Confiance
+                </p>
+                <p className="text-sm font-bold text-white">
+                  Boutique Vérifiée
+                </p>
               </div>
             </div>
           </motion.div>
