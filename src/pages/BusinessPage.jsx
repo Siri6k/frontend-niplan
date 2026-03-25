@@ -153,13 +153,22 @@ const BusinessPage = () => {
                 </span>
               </div>
               <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/80 dark:bg-white/5 rounded-full border border-slate-200 dark:border-white/5 backdrop-blur-md">
-                <Star
-                  size={12}
-                  className="text-yellow-500 dark:text-yellow-400 fill-yellow-500 dark:fill-yellow-400"
-                />
-                <span className="text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-widest">
-                  Boutique Vérifiée
-                </span>
+                {localStorage.getItem("is_phone_verified") === "true" ? (
+                  <>
+                    {" "}
+                    <Star
+                      size={12}
+                      className="text-yellow-500 dark:text-yellow-400 fill-yellow-500 dark:fill-yellow-400"
+                    />{" "}
+                    <span className="text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-widest">
+                      Boutique Vérifiée
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-[10px] font-black text-red-600 dark:text-red-300 uppercase tracking-widest">
+                    Non Vérifiée
+                  </span>
+                )}
               </div>
             </div>
 

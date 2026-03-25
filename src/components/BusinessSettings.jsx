@@ -188,7 +188,7 @@ const BusinessSettings = ({ businessData, onUpdate }) => {
                   size={18}
                   className="group-hover:rotate-12 transition-transform"
                 />
-                Enregistrer les modifications
+                Enregistrer
               </>
             )}
           </button>
