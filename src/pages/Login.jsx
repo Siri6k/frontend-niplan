@@ -37,7 +37,7 @@ const FEATURES = [
 ];
 
 const Spinner = () => (
-  <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+  <div className="w-6 h-6 border-2 border-slate-300/30 dark:border-white/30 border-t-slate-600 dark:border-t-white rounded-full animate-spin" />
 );
 
 const AVATAR_URLS = [
@@ -388,18 +388,22 @@ const Login = () => {
             <button
               onClick={handlePhoneSubmit}
               disabled={isLoading || phone.length < 10}
-              className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed text-white py-4 rounded-2xl font-bold text-lg transition-all shadow-lg shadow-green-500/20 flex items-center justify-center gap-2"
+              className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 disabled:from-slate-300 disabled:to-slate-300 dark:disabled:from-slate-800 dark:disabled:to-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed text-white py-4 rounded-2xl font-bold text-lg transition-all shadow-lg shadow-green-500/20 flex items-center justify-center gap-2"
             >
               {isLoading ? (
                 <Spinner />
               ) : (
                 <>
-                  Continuer <ArrowRight size={20} className="text-green-300" />
+                  Continuer{" "}
+                  <ArrowRight
+                    size={20}
+                    className="text-green-200 dark:text-green-300"
+                  />
                 </>
               )}
             </button>
 
-            <p className="text-[10px] text-center text-slate-500 uppercase tracking-widest font-bold">
+            <p className="text-[10px] text-center text-slate-500 dark:text-slate-500 uppercase tracking-widest font-bold">
               En continuant, vous acceptez nos CGU
             </p>
           </div>
@@ -409,7 +413,7 @@ const Login = () => {
         return (
           <div className="space-y-4">
             <div className="bg-blue-500/10 border border-blue-500/20 p-4 rounded-2xl mb-4">
-              <p className="text-xs text-blue-400 font-bold text-center uppercase tracking-wider">
+              <p className="text-xs text-blue-600 dark:text-blue-400 font-bold text-center uppercase tracking-wider">
                 🔐 Définissez votre mot de passe
               </p>
             </div>
@@ -418,7 +422,7 @@ const Login = () => {
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Nouveau mot de passe"
-                className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl outline-none focus:border-green-500/50 focus:bg-white/[0.07] transition-all text-white placeholder:text-slate-600"
+                className="w-full px-5 py-4 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:border-green-500/50 focus:bg-slate-50 dark:focus:bg-white/[0.07] transition-all text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-600"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
@@ -426,7 +430,7 @@ const Login = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 dark:hover:text-white transition-colors"
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
@@ -436,7 +440,7 @@ const Login = () => {
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Confirmer le mot de passe"
-                className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl outline-none focus:border-green-500/50 focus:bg-white/[0.07] transition-all text-white placeholder:text-slate-600"
+                className="w-full px-5 py-4 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:border-green-500/50 focus:bg-slate-50 dark:focus:bg-white/[0.07] transition-all text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-600"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 disabled={isLoading}
@@ -444,15 +448,25 @@ const Login = () => {
             </div>
 
             {error && (
-              <p className="text-sm text-red-500 text-center font-medium">{error}</p>
+              <p className="text-sm text-red-500 text-center font-medium">
+                {error}
+              </p>
             )}
 
             <button
               onClick={handlePasswordCreation}
-              disabled={isLoading || password.length < 8 || password !== confirmPassword}
-              className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 text-white py-4 rounded-2xl font-bold text-lg transition-all shadow-lg flex items-center justify-center gap-2"
+              disabled={
+                isLoading || password.length < 8 || password !== confirmPassword
+              }
+              className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 disabled:from-slate-300 disabled:to-slate-300 dark:disabled:from-slate-800 dark:disabled:to-slate-800 disabled:text-slate-500 text-white py-4 rounded-2xl font-bold text-lg transition-all shadow-lg flex items-center justify-center gap-2"
             >
-              {isLoading ? <Spinner /> : <>Suivant <Lock size={18} /></>}
+              {isLoading ? (
+                <Spinner />
+              ) : (
+                <>
+                  Suivant <Lock size={18} />
+                </>
+              )}
             </button>
           </div>
         );
@@ -461,7 +475,7 @@ const Login = () => {
         return (
           <div className="space-y-4">
             <div className="bg-indigo-500/10 border border-indigo-500/20 p-4 rounded-2xl mb-4">
-              <p className="text-xs text-indigo-400 font-bold text-center uppercase tracking-wider">
+              <p className="text-xs text-indigo-600 dark:text-indigo-400 font-bold text-center uppercase tracking-wider">
                 🔒 Sécurisez votre accès
               </p>
             </div>
@@ -470,7 +484,7 @@ const Login = () => {
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Nouveau mot de passe"
-                className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl outline-none focus:border-green-500/50 focus:bg-white/[0.07] transition-all text-white placeholder:text-slate-600"
+                className="w-full px-5 py-4 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:border-green-500/50 focus:bg-slate-50 dark:focus:bg-white/[0.07] transition-all text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-600"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
@@ -478,7 +492,7 @@ const Login = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 dark:hover:text-white transition-colors"
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
@@ -488,7 +502,7 @@ const Login = () => {
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Confirmer"
-                className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl outline-none focus:border-green-500/50 focus:bg-white/[0.07] transition-all text-white placeholder:text-slate-600"
+                className="w-full px-5 py-4 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:border-green-500/50 focus:bg-slate-50 dark:focus:bg-white/[0.07] transition-all text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-600"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 disabled={isLoading}
@@ -512,7 +526,7 @@ const Login = () => {
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Votre mot de passe"
-                className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl outline-none focus:border-blue-500/50 focus:bg-white/[0.07] transition-all text-white placeholder:text-slate-600"
+                className="w-full px-5 py-4 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:border-blue-500/50 focus:bg-slate-50 dark:focus:bg-white/[0.07] transition-all text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-600"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 onKeyPress={(e) => e.key === "Enter" && handlePasswordLogin()}
@@ -522,14 +536,16 @@ const Login = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 dark:hover:text-white transition-colors"
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
 
             {error && (
-              <p className="text-sm text-red-500 text-center font-medium">{error}</p>
+              <p className="text-sm text-red-500 text-center font-medium">
+                {error}
+              </p>
             )}
 
             <button
@@ -542,7 +558,7 @@ const Login = () => {
 
             <button
               onClick={() => toast("Fonctionnalité à venir")}
-              className="w-full text-xs font-bold text-slate-500 hover:text-blue-400 uppercase tracking-widest"
+              className="w-full text-xs font-bold text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 uppercase tracking-widest"
             >
               Oublié ?
             </button>
@@ -553,7 +569,7 @@ const Login = () => {
         return (
           <div className="space-y-4">
             <div className="bg-orange-500/10 border border-orange-500/20 p-4 rounded-2xl mb-4 text-center">
-              <p className="text-xs text-orange-400 font-bold uppercase tracking-wider">
+              <p className="text-xs text-orange-600 dark:text-orange-400 font-bold uppercase tracking-wider">
                 📱 Code envoyé sur WhatsApp
               </p>
             </div>
@@ -564,14 +580,18 @@ const Login = () => {
                 type="text"
                 inputMode="numeric"
                 placeholder="6 chiffres"
-                className="w-full px-5 py-5 bg-white/5 border border-white/10 rounded-2xl outline-none focus:border-orange-500/50 transition-all text-center text-3xl font-mono tracking-[0.5em] text-white"
+                className="w-full px-5 py-5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:border-orange-500/50 transition-all text-center text-3xl font-mono tracking-[0.5em] text-slate-900 dark:text-white"
                 value={otpCode}
-                onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                onChange={(e) =>
+                  setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                }
                 disabled={isLoading}
               />
             </div>
 
-            {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+            {error && (
+              <p className="text-sm text-red-500 text-center">{error}</p>
+            )}
 
             <button
               onClick={handleOtpVerify}
@@ -583,23 +603,26 @@ const Login = () => {
 
             <div className="text-center">
               {countdown > 0 ? (
-                <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">
-                  Renvoyer dans <span className="text-white">{countdown}s</span>
+                <p className="text-xs text-slate-500 dark:text-slate-500 font-bold uppercase tracking-widest">
+                  Renvoyer dans{" "}
+                  <span className="text-slate-900 dark:text-white">
+                    {countdown}s
+                  </span>
                 </p>
               ) : (
                 <button
                   onClick={resendOtp}
-                  className="text-xs font-bold text-green-500 hover:text-green-400 transition-colors uppercase tracking-widest"
+                  className="text-xs font-bold text-green-600 dark:text-green-500 hover:text-green-500 dark:hover:text-green-400 transition-colors uppercase tracking-widest"
                 >
                   Renvoyer le code
                 </button>
               )}
             </div>
-            
-             <button
+
+            <button
               onClick={handleOtpVerifyLater}
               disabled={isLoading}
-              className="w-full py-2 text-xs font-bold text-slate-600 hover:text-slate-400 uppercase tracking-widest flex items-center justify-center gap-2"
+              className="w-full py-2 text-xs font-bold text-slate-500 hover:text-slate-700 dark:hover:text-slate-400 uppercase tracking-widest flex items-center justify-center gap-2"
             >
               Continuer sans vérifier <ArrowRight size={14} />
             </button>
@@ -609,15 +632,22 @@ const Login = () => {
       case STEPS.SUCCESS:
         return (
           <div className="text-center py-12">
-            <motion.div 
+            <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               className="w-24 h-24 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-green-500/20"
             >
-              <Zap size={40} className="text-green-500 fill-green-500" />
+              <Zap
+                size={40}
+                className="text-green-600 dark:text-green-500 fill-green-500"
+              />
             </motion.div>
-            <h3 className="text-xl font-black text-white mb-2 tracking-tight">Accès Autorisé !</h3>
-            <p className="text-slate-400 text-sm">Chargement de votre terminal de vente...</p>
+            <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">
+              Accès Autorisé !
+            </h3>
+            <p className="text-slate-500 dark:text-slate-400 text-sm">
+              Chargement de votre terminal de vente...
+            </p>
           </div>
         );
 
@@ -628,53 +658,71 @@ const Login = () => {
 
   const getStepIcon = () => {
     switch (step) {
-      case STEPS.PHONE: return <Phone size={22} />;
+      case STEPS.PHONE:
+        return <Phone size={22} />;
       case STEPS.PASSWORD_CREATION:
       case STEPS.PASSWORD_SETUP:
-      case STEPS.PASSWORD_LOGIN: return <Lock size={22} />;
-      case STEPS.OTP_VERIFY: return <MessageCircle size={22} />;
-      case STEPS.SUCCESS: return <Sparkles size={22} />;
-      default: return <MessageCircle size={22} />;
+      case STEPS.PASSWORD_LOGIN:
+        return <Lock size={22} />;
+      case STEPS.OTP_VERIFY:
+        return <MessageCircle size={22} />;
+      case STEPS.SUCCESS:
+        return <Sparkles size={22} />;
+      default:
+        return <MessageCircle size={22} />;
     }
   };
 
   const getStepTitle = () => {
     switch (step) {
-      case STEPS.PHONE: return "Bienvenue Pro";
+      case STEPS.PHONE:
+        return "Bienvenue Pro";
       case STEPS.PASSWORD_CREATION:
-      case STEPS.PASSWORD_SETUP: return "Sécurité";
-      case STEPS.PASSWORD_LOGIN: return "Ravis de vous revoir";
-      case STEPS.OTP_VERIFY: return "Vérification";
-      case STEPS.SUCCESS: return "Prêt à décoller";
-      default: return "";
+      case STEPS.PASSWORD_SETUP:
+        return "Sécurité";
+      case STEPS.PASSWORD_LOGIN:
+        return "Ravis de vous revoir";
+      case STEPS.OTP_VERIFY:
+        return "Vérification";
+      case STEPS.SUCCESS:
+        return "Prêt à décoller";
+      default:
+        return "";
     }
   };
 
   const getStepSubtitle = () => {
     switch (step) {
-      case STEPS.PHONE: return "Entrez votre terminal mobile";
-      case STEPS.PASSWORD_CREATION: return "Créez votre clé d'accès";
-      case STEPS.PASSWORD_SETUP: return "Définissez votre accès sécurisé";
-      case STEPS.PASSWORD_LOGIN: return "Identifiez-vous pour continuer";
-      case STEPS.OTP_VERIFY: return `Code envoyé au ${phone}`;
-      case STEPS.SUCCESS: return "Votre dashboard est prêt.";
-      default: return "";
+      case STEPS.PHONE:
+        return "Entrez votre terminal mobile";
+      case STEPS.PASSWORD_CREATION:
+        return "Créez votre clé d'accès";
+      case STEPS.PASSWORD_SETUP:
+        return "Définissez votre accès sécurisé";
+      case STEPS.PASSWORD_LOGIN:
+        return "Identifiez-vous pour continuer";
+      case STEPS.OTP_VERIFY:
+        return `Code envoyé au ${phone}`;
+      case STEPS.SUCCESS:
+        return "Votre dashboard est prêt.";
+      default:
+        return "";
     }
   };
 
   return (
-    <div className="relative min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 overflow-hidden font-sans selection:bg-green-500/30">
+    <div className="relative min-h-screen bg-slate-100 dark:bg-slate-950 flex flex-col items-center justify-center p-4 overflow-hidden font-sans selection:bg-green-500/30">
       {/* Background Animated Nebulas */}
       <div className="absolute inset-0 z-0 pointer-events-none">
-        <motion.div 
+        <motion.div
           animate={{ x: [0, 50, 0], y: [0, 30, 0], scale: [1, 1.1, 1] }}
           transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-green-500/10 rounded-full blur-[140px]" 
+          className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-green-500/10 rounded-full blur-[140px]"
         />
-        <motion.div 
+        <motion.div
           animate={{ x: [0, -40, 0], y: [0, -20, 0], scale: [1, 1.2, 1] }}
           transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-blue-600/10 rounded-full blur-[140px]" 
+          className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-blue-600/10 rounded-full blur-[140px]"
         />
       </div>
 
@@ -682,29 +730,29 @@ const Login = () => {
       <div className="relative z-10 w-full max-w-lg">
         {/* LOGO / BRANDING */}
         <div className="text-center mb-10">
-           <Link to="/" className="group inline-flex items-center gap-2">
-              <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.3)] group-hover:scale-110 transition-transform duration-300">
-                 <Zap size={20} className="text-white fill-white" />
-              </div>
-              <h1 className="text-3xl font-black text-white tracking-tighter">
-                Niplan<span className="text-green-500">.</span>
-              </h1>
-           </Link>
+          <Link to="/" className="group inline-flex items-center gap-2">
+            <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.3)] group-hover:scale-110 transition-transform duration-300">
+              <Zap size={20} className="text-white fill-white" />
+            </div>
+            <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">
+              Niplan<span className="text-green-500">.</span>
+            </h1>
+          </Link>
         </div>
 
         <motion.div
-           initial={{ opacity: 0, y: 30 }}
-           animate={{ opacity: 1, y: 0 }}
-           className="glass-card rounded-[2.5rem] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/5"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="glass-card bg-white/95 dark:bg-white/5 rounded-[2.5rem] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-slate-200 dark:border-white/5"
         >
           {/* Header Progress Bar */}
-          <div className="h-1.5 w-full bg-white/5 flex">
-             {[1, 2, 3].map((i) => (
-               <motion.div 
-                 key={i}
-                 className={`h-full flex-1 transition-all duration-700 ${i <= getCurrentStepIndex() ? 'bg-gradient-to-r from-green-500 to-emerald-400' : 'bg-transparent'}`}
-               />
-             ))}
+          <div className="h-1.5 w-full bg-slate-200 dark:bg-white/5 flex">
+            {[1, 2, 3].map((i) => (
+              <motion.div
+                key={i}
+                className={`h-full flex-1 transition-all duration-700 ${i <= getCurrentStepIndex() ? "bg-gradient-to-r from-green-500 to-emerald-400" : "bg-transparent"}`}
+              />
+            ))}
           </div>
 
           <div className="p-8 sm:p-12">
@@ -713,71 +761,89 @@ const Login = () => {
               {step !== STEPS.PHONE && step !== STEPS.SUCCESS && (
                 <button
                   onClick={goBack}
-                  className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl text-slate-400 hover:text-white transition-all border border-white/5 active:scale-95"
+                  className="p-3 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-2xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all border border-slate-200 dark:border-white/5 active:scale-95"
                 >
                   <ArrowLeft size={18} />
                 </button>
               )}
               <div className="flex-1">
-                 <h2 className="text-2xl font-black text-white tracking-tight leading-none mb-2">
-                    {getStepTitle()}
-                 </h2>
-                 <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest">
-                    {getStepSubtitle()}
-                 </p>
+                <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-none mb-2">
+                  {getStepTitle()}
+                </h2>
+                <p className="text-[11px] text-slate-500 dark:text-slate-500 font-bold uppercase tracking-widest">
+                  {getStepSubtitle()}
+                </p>
               </div>
-              <div className="w-14 h-14 bg-gradient-to-br from-white/10 to-transparent rounded-2xl flex items-center justify-center text-green-400 border border-white/10 shadow-inner">
-                 {getStepIcon()}
+              <div className="w-14 h-14 bg-gradient-to-br from-slate-100 to-transparent dark:from-white/10 rounded-2xl flex items-center justify-center text-green-600 dark:text-green-400 border border-slate-200 dark:border-white/10 shadow-inner">
+                {getStepIcon()}
               </div>
             </div>
 
             {/* Dynamics / Forms with transitions */}
             <div className="min-h-[300px] flex flex-col justify-center">
-               <AnimatePresence mode="wait">
-                  <motion.div
-                    key={step}
-                    initial={{ opacity: 0, x: 20, scale: 0.98 }}
-                    animate={{ opacity: 1, x: 0, scale: 1 }}
-                    exit={{ opacity: 0, x: -20, scale: 0.98 }}
-                    transition={{ duration: 0.4, type: "spring", stiffness: 100 }}
-                  >
-                     {renderStepContent()}
-                  </motion.div>
-               </AnimatePresence>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={step}
+                  initial={{ opacity: 0, x: 20, scale: 0.98 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  exit={{ opacity: 0, x: -20, scale: 0.98 }}
+                  transition={{ duration: 0.4, type: "spring", stiffness: 100 }}
+                >
+                  {renderStepContent()}
+                </motion.div>
+              </AnimatePresence>
             </div>
           </div>
 
           {/* Footer of the vault */}
-          <div className="px-12 py-6 bg-white/[0.02] border-t border-white/5 flex items-center justify-between">
-             <div className="flex items-center gap-2 text-slate-500 text-[9px] font-black uppercase tracking-[0.2em]">
-                <Shield size={10} className="text-green-500" />
-                Auth Sécurisée
-             </div>
-             <p className="text-[9px] text-slate-600 font-bold uppercase tracking-widest">© Niplan Global</p>
+          <div className="px-12 py-6 bg-slate-50 dark:bg-white/[0.02] border-t border-slate-200 dark:border-white/5 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-slate-500 dark:text-slate-500 text-[9px] font-black uppercase tracking-[0.2em]">
+              <Shield
+                size={10}
+                className="text-green-600 dark:text-green-500"
+              />
+              Auth Sécurisée
+            </div>
+            <p className="text-[9px] text-slate-500 dark:text-slate-600 font-bold uppercase tracking-widest">
+              © Niplan Global
+            </p>
           </div>
         </motion.div>
 
         {/* Support / Quick Help */}
         <div className="mt-10 flex flex-col items-center gap-4">
-           <div className="flex justify-center gap-8">
-              <button className="text-[10px] font-black text-slate-600 hover:text-white transition-colors uppercase tracking-[0.2em]">CGU</button>
-              <button className="text-[10px] font-black text-slate-600 hover:text-white transition-colors uppercase tracking-[0.2em]">Sécurité</button>
-              <button className="text-[10px] font-black text-orange-500/60 hover:text-orange-400 transition-colors uppercase tracking-[0.2em]">Assistance</button>
-           </div>
-           
-           <div className="h-4 w-px bg-gradient-to-b from-white/10 to-transparent" />
-           
-           <div className="flex items-center gap-4">
-             <div className="flex -space-x-2">
-                {AVATAR_URLS.map((url, i) => (
-                  <img key={i} src={url} alt="User" className="w-6 h-6 rounded-full border border-slate-900 object-cover" />
-                ))}
-             </div>
-             <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Rejoignez +500 experts</p>
-           </div>
+          <div className="flex justify-center gap-8">
+            <button className="text-[10px] font-bold text-slate-500 hover:text-slate-700 dark:text-slate-600 dark:hover:text-white transition-colors uppercase tracking-[0.2em]">
+              CGU
+            </button>
+            <button className="text-[10px] font-bold text-slate-500 hover:text-slate-700 dark:text-slate-600 dark:hover:text-white transition-colors uppercase tracking-[0.2em]">
+              Sécurité
+            </button>
+            <button className="text-[10px] font-bold text-orange-600/60 hover:text-orange-700 dark:text-orange-500/60 dark:hover:text-orange-400 transition-colors uppercase tracking-[0.2em]">
+              Assistance
+            </button>
+          </div>
+
+          <div className="h-4 w-px bg-gradient-to-b from-slate-300 to-transparent dark:from-white/10" />
+
+          <div className="flex items-center gap-4">
+            <div className="flex -space-x-2">
+              {AVATAR_URLS.map((url, i) => (
+                <img
+                  key={i}
+                  src={url}
+                  alt="User"
+                  className="w-6 h-6 rounded-full border border-white dark:border-slate-900 object-cover"
+                />
+              ))}
+            </div>
+            <p className="text-[10px] text-slate-500 dark:text-slate-500 font-bold uppercase tracking-widest">
+              Rejoignez +500 experts
+            </p>
+          </div>
         </div>
       </div>
-      
+
       <div className="hidden">
         <ChatSupport />
       </div>
