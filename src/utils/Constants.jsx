@@ -40,6 +40,40 @@ export const CATEGORY_DATA = {
   Général: {
     desc: "Articles divers",
   },
+  Mode: {
+    desc: "Vêtements, chaussures, sacs",
+    showPrice: true,
+    allowTroc: false,
+    fields: [
+      {
+        name: "quantite",
+        label: "Quantité",
+        type: "number",
+        placeholder: "Ex: 1",
+        value: 1,
+      },
+      {
+        name: "taille",
+        label: "Taille",
+        type: "text",
+        placeholder: "Ex: M, 42, One Size...",
+      },
+      {
+        name: "couleur",
+        label: "Couleur",
+        type: "text",
+        placeholder: "Ex: Rouge, Bleu, Vert...",
+      },
+
+      {
+        name: "etat_mode",
+        label: "État",
+        type: "select",
+        default: "Neuf avec étiquette",
+        options: ["Neuf avec étiquette", "Comme neuf", "Bon état", "Usé"],
+      },
+    ],
+  },
   Électronique: {
     desc: "Téléphones, PC, accessoires",
     showPrice: true,
@@ -78,40 +112,7 @@ export const CATEGORY_DATA = {
       },
     ],
   },
-  Mode: {
-    desc: "Vêtements, chaussures, sacs",
-    showPrice: true,
-    allowTroc: false,
-    fields: [
-      {
-        name: "quantite",
-        label: "Quantité",
-        type: "number",
-        placeholder: "Ex: 1",
-        value: 1,
-      },
-      {
-        name: "taille",
-        label: "Taille",
-        type: "text",
-        placeholder: "Ex: M, 42, One Size...",
-      },
-      {
-        name: "couleur",
-        label: "Couleur",
-        type: "text",
-        placeholder: "Ex: Rouge, Bleu, Vert...",
-      },
 
-      {
-        name: "etat_mode",
-        label: "État",
-        type: "select",
-        default: "Neuf avec étiquette",
-        options: ["Neuf avec étiquette", "Comme neuf", "Bon état", "Usé"],
-      },
-    ],
-  },
   Immobilier: {
     desc: "Maisons, appartements, terrains",
     showPrice: true,
