@@ -81,11 +81,10 @@ const Dashboard = () => {
       setPhone(businessRes.data.owner_phone || "");
 
       // Fusion intelligente des anciens produits et nouveaux listings
-      const v1Products = businessRes.data.products || [];
       const v2Listings = listingsRes.data.results || [];
 
       // On combine et on trie par ID ou date (décroissant)
-      const merged = [...v2Listings, ...v1Products];
+      const merged = [...v2Listings];
       setProducts(merged);
     } catch (err) {
       console.error("Dashboard Fetch Error:", err);
