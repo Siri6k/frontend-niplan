@@ -110,10 +110,15 @@ const ProductCard = memo(
     const isV2 = !!title;
     const displayTitle = title || name;
     const displayImage = main_image || image;
-    const displayLocation = quartier ? `${commune} (${quartier})` : (location || commune || "Lubumbashi, RDC");
+    const displayLocation = quartier
+      ? `${commune} (${quartier})`
+      : location || commune || "Lubumbashi, RDC";
     const hasMultipleImages = images && images.length > 0;
-    
-    const isNew = is_new || (created_at && (new Date() - new Date(created_at)) < 2 * 24 * 60 * 60 * 1000);
+
+    const isNew =
+      is_new ||
+      (created_at &&
+        new Date() - new Date(created_at) < 2 * 24 * 60 * 60 * 1000);
 
     const handleWhatsAppClick = useCallback(
       (e) => {
@@ -125,15 +130,17 @@ const ProductCard = memo(
 
     const handleCardClick = useCallback(() => {
       const slug = product.slug || product.id;
-      navigate(`/p/${slug}/`); 
+      navigate(`/p/${slug}/`);
     }, [navigate, product]);
 
     return (
-      <article className={`group relative bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 border flex flex-col ${
-        isV2 
-          ? "border-green-500/20 dark:border-green-500/10 ring-1 ring-green-500/5 shadow-[0_0_20px_rgba(34,197,94,0.05)]" 
-          : "border-gray-100 dark:border-slate-800"
-      }`}>
+      <article
+        className={`group relative bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 border flex flex-col ${
+          isV2
+            ? "border-green-500/20 dark:border-green-500/10 ring-1 ring-green-500/5 shadow-[0_0_20px_rgba(34,197,94,0.05)]"
+            : "border-gray-100 dark:border-slate-800"
+        }`}
+      >
         {/* V2 Glow Effect */}
         {isV2 && (
           <div className="absolute -inset-0.5 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-500" />
@@ -157,12 +164,14 @@ const ProductCard = memo(
               <span className="bg-gradient-to-r from-amber-400 to-yellow-600 text-white text-[8px] font-black px-2 py-0.5 rounded shadow-lg flex items-center gap-1 uppercase tracking-widest">
                 <Zap size={8} fill="currentColor" /> Premium Pro
               </span>
-            ) : isNew && (
-              <span className="bg-green-600 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg">
-                NOUVEAU
-              </span>
+            ) : (
+              isNew && (
+                <span className="bg-green-600 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg">
+                  NOUVEAU
+                </span>
+              )
             )}
-            
+
             {hasMultipleImages && (
               <div className="bg-black/60 backdrop-blur-md text-white text-[8px] font-black px-2 py-1 rounded shadow-lg border border-white/10 uppercase tracking-tighter">
                 +{images.length} PHOTOS
@@ -200,15 +209,22 @@ const ProductCard = memo(
           </h3>
 
           {/* Mini Specs V2 */}
-          {isV2 && safeProduct.specs && Object.keys(safeProduct.specs).length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-3">
-              {Object.entries(safeProduct.specs).slice(0, 2).map(([key, val]) => (
-                <span key={key} className="text-[9px] bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded border border-slate-200 dark:border-white/5 font-bold uppercase tracking-tighter">
-                  {val}
-                </span>
-              ))}
-            </div>
-          )}
+          {isV2 &&
+            safeProduct.specs &&
+            Object.keys(safeProduct.specs).length > 0 && (
+              <div className="flex flex-wrap gap-1 mb-3">
+                {Object.entries(safeProduct.specs)
+                  .slice(0, 2)
+                  .map(([key, val]) => (
+                    <span
+                      key={key}
+                      className="text-[9px] bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded border border-slate-200 dark:border-white/5 font-bold uppercase tracking-tighter"
+                    >
+                      {val}
+                    </span>
+                  ))}
+              </div>
+            )}
 
           <div className="flex items-baseline gap-1 mt-auto mb-3">
             <span className="text-xl font-black text-slate-900 dark:text-white tracking-tighter">
@@ -226,7 +242,7 @@ const ProductCard = memo(
             </div>
 
             <button
-              onClick={handleWhatsAppClick}
+              onClick={handleCardClick}
               className="w-full bg-slate-950 dark:bg-white text-white dark:text-slate-950 py-3 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 hover:bg-green-600 dark:hover:bg-green-500 hover:text-white active:scale-95 shadow-lg shadow-black/5"
             >
               <MessageCircle size={14} />

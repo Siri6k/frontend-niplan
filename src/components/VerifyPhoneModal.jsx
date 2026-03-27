@@ -16,7 +16,6 @@ export default function VerifyPhoneModal({ isOpen, onClose, phone = "" }) {
     if (isOpen) {
       setCode("");
       setTimeout(() => inputRef.current?.focus(), 100);
-      handleSend(); // Envoi automatique
     }
   }, [isOpen]);
 
@@ -36,9 +35,10 @@ export default function VerifyPhoneModal({ isOpen, onClose, phone = "" }) {
   const handleSend = async () => {
     setIsLoading(true);
     try {
-      const res = await api.post("/phone/request-otp/", {
+      const res = await api.post("/auth/register/request-otp/", {
         phone_whatsapp: phone,
       });
+
       toast.success(res.data.message || "Code envoyé sur WhatsApp !");
       setResendSeconds(60);
     } catch (err) {
@@ -56,9 +56,9 @@ export default function VerifyPhoneModal({ isOpen, onClose, phone = "" }) {
     }
     setIsLoading(true);
     try {
-      const res = await api.post("/phone/verify-otp/", {
+      const res = await api.post("/auth/register/verify-otp/", {
         phone_whatsapp: phone,
-        otp_code: code,
+        code: code,
       });
       const { access, refresh, business_slug, role, is_phone_verified } =
         res.data;

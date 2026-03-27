@@ -55,7 +55,28 @@ const Home = () => {
       <BusinessShowcase />
 
       <AnalyticsPreview />
+      {/* Section Acheteurs (Categories) */}
+      <Categories />
 
+      {/* Section Nouveautés V1 
+      <section className="px-4 mt-8 mb-4 max-w-7xl mx-auto">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-text-primary">
+              Le Marché Niplan
+            </h2>
+            <p className="text-sm text-text-secondary mt-0.5">
+              Découvrez les articles de nos vendeurs certifiés
+            </p>
+          </div>
+          <Link
+            to="/dashboard?tab=products"
+            className="text-sm font-medium text-accent hover:opacity-80 transition-opacity"
+          >
+            Voir tout →
+          </Link>
+        </div>
+      </section>*/}
       {/* Section V2 : PROXIMITE & PRO */}
       {v2Listings.length > 0 && (
         <div className="bg-gradient-to-b from-green-50/50 to-transparent dark:from-green-950/20 py-12">
@@ -76,7 +97,7 @@ const Home = () => {
                 </p>
               </div>
               <Link
-                to="/v2/all"
+                to="/dashboard"
                 className="text-xs font-black text-green-600 dark:text-green-500 uppercase tracking-widest hover:translate-x-1 transition-transform"
               >
                 Voir tout le catalogue Pro →
@@ -90,30 +111,7 @@ const Home = () => {
         </div>
       )}
 
-      {/* Section Acheteurs (Categories) */}
-      <Categories />
-
-      {/* Section Nouveautés V1 */}
-      <section className="px-4 mt-8 mb-4 max-w-7xl mx-auto">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-bold text-text-primary">
-              Le Marché Niplan
-            </h2>
-            <p className="text-sm text-text-secondary mt-0.5">
-              Découvrez les articles de nos vendeurs certifiés
-            </p>
-          </div>
-          <Link
-            to="/dashboard?tab=products"
-            className="text-sm font-medium text-accent hover:opacity-80 transition-opacity"
-          >
-            Voir tout →
-          </Link>
-        </div>
-      </section>
-
-      {/* Grille produits V1 */}
+      {/* Grille produits V1 
       {isLoading ? (
         <div className="px-4 py-12 flex justify-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent" />
@@ -126,7 +124,7 @@ const Home = () => {
             Aucun produit disponible pour le moment...
           </div>
         )
-      )}
+      )}*/}
 
       {/* Footer */}
       <footer className="py-4 pb-1 text-center border-t border-gray-200 dark:border-slate-800 mt-3">
