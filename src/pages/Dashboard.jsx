@@ -68,16 +68,28 @@ const Dashboard = () => {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const businessRes = await api.get("/my-business/update/");
+      const [businessRes, listingsRes] = await Promise.all([
+        api.get("/my-business/update/"),
+        api.get("/v2/listings/"),
+      ]);
+
       if (businessRes.status !== 200) {
         throw new Error(businessRes?.data?.error || "Erreur de chargement");
       }
+
       setBusiness(businessRes.data);
-      setProducts(businessRes.data.products || []);
       setPhone(businessRes.data.owner_phone || "");
+
+      // Fusion intelligente des anciens produits et nouveaux listings
+      const v1Products = businessRes.data.products || [];
+      const v2Listings = listingsRes.data.results || [];
+
+      // On combine et on trie par ID ou date (décroissant)
+      const merged = [...v2Listings, ...v1Products];
+      setProducts(merged);
     } catch (err) {
-      console.log(err);
-      toast.error("Erreur de chargement");
+      console.error("Dashboard Fetch Error:", err);
+      toast.error("Erreur de chargement des données");
     } finally {
       setIsLoading(false);
     }
@@ -85,41 +97,62 @@ const Dashboard = () => {
 
   const handleAdd = async (formData) => {
     try {
-      const res = await api.post("/my-products/", formData);
-      setProducts(res.data);
-      toast.success("Produit ajouté !");
+      // Priorité V2 pour tout nouvel article
+      await api.post("/v2/listings/", formData);
+      toast.success("Annonce V2 publiée !");
       setShowForm(false);
+      fetchData(); // Plus fiable pour rafraîchir la liste fusionnée
     } catch (err) {
-      toast.error("Erreur lors de l'ajout");
+      console.error("Add Error:", err);
+      toast.error("Erreur lors de l'ajout V2");
     }
   };
 
   const handleEdit = async (slug, formData, isImageChanged) => {
     try {
+      // Détecte si c'est un produit V1 ou V2
+      // Si title est présent dans le formData original ou si c'est une édition de Listing
+      const isV1 = !!editingProduct?.name;
+
+      const endpoint = `/v2/listings/${slug}/`; //const endpoint = isV2 ? `/v2/listings/${slug}/` : `/my-products/${slug}/`;
+      //const endpoint = isV2 ? `/v2/listings/${slug}/` : `/my-products/${slug}/`;
+
+      /*
       if (isImageChanged && !formData.get("image")) {
-        if (!window.confirm("Supprimer l'image du produit ?")) return;
+        if (!window.confirm("Supprimer l'image ?")) return;
+      }*/
+      if (isV1) {
+        if (slug) {
+          await api.delete(`/my-products/${slug}/`);
+        }
+        await handleAdd(formData);
+        return;
       }
-      const res = await api.patch(`/my-products/${slug}/`, formData, {
+      await api.patch(endpoint, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      setProducts(res.data);
-      toast.success("Produit modifié !");
+
+      toast.success("Annonce mise à jour !");
       setEditingProduct(null);
+      fetchData();
     } catch (err) {
+      console.error("Edit Error:", err);
       toast.error("Erreur lors de la modification");
     }
   };
 
-  const handleDelete = async (slug) => {
-    if (!window.confirm("Supprimer ce produit ?")) return;
-    const previousProducts = [...products];
-    setProducts(products.filter((p) => p.slug !== slug));
+  const handleDelete = async (slug, isV2 = false) => {
+    if (isV2) {
+      if (!window.confirm("Supprimer cette annonce V2 ?")) return;
+    }
+
     try {
-      const res = await api.delete(`/my-products/${slug}/`);
-      setProducts(res.data);
-      toast.success("Produit supprimé");
+      const endpoint = isV2 ? `/v2/listings/${slug}/` : `/my-products/${slug}/`;
+      await api.delete(endpoint);
+      toast.success("Annonce supprimée");
+      fetchData();
     } catch (err) {
-      setProducts(previousProducts);
+      console.error("Delete Error:", err);
       toast.error("Erreur de suppression");
     }
   };

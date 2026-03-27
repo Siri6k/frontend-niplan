@@ -8,6 +8,7 @@ import BusinessProfile from "./pages/BusinessProfile";
 
 import { Toaster } from "react-hot-toast";
 import AdminDashboard from "./pages/AdminPanel";
+import ProductDetail from "./pages/ProductDetail";
 import { ProtectedClientRoute } from "./components/protectedComponents/ProtectedClientRoute";
 import { ProtectedAdminRoute } from "./components/protectedComponents/ProtectedAdminRoute";
 
@@ -21,6 +22,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/b/:slug" element={<BusinessPage />} />
+          <Route path="/p/:slug" element={<ProductDetail />} />
 
           {/* Client/Vendeur protégé */}
           <Route

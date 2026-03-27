@@ -35,3 +35,168 @@ export const ProtectedAdminRoute = ({ children }) => {
 
   return children;
 };
+
+export const CATEGORY_DATA = {
+  Général: {
+    desc: "Articles divers",
+  },
+  Électronique: {
+    desc: "Téléphones, PC, accessoires",
+    showPrice: true,
+    allowTroc: true,
+    fields: [
+      {
+        name: "quantite",
+        label: "Quantité",
+        type: "number",
+        placeholder: "Ex: 1",
+        default: 1,
+      },
+      {
+        name: "couleur",
+        label: "Couleur",
+        type: "text",
+        placeholder: "Ex: Noir, Blanc, Or, ...",
+      },
+      {
+        name: "capacite",
+        label: "Capacité",
+        type: "text",
+        placeholder: "Ex: 128Go, 256Go, 512Go",
+      },
+      {
+        name: "etat_objet",
+        label: "État",
+        type: "select",
+        default: "Neuf scellé",
+        options: [
+          "Neuf scellé",
+          "Occasion (Comme neuf)",
+          "Occasion (Bon état)",
+          "À réparer",
+        ],
+      },
+    ],
+  },
+  Mode: {
+    desc: "Vêtements, chaussures, sacs",
+    showPrice: true,
+    allowTroc: false,
+    fields: [
+      {
+        name: "quantite",
+        label: "Quantité",
+        type: "number",
+        placeholder: "Ex: 1",
+        value: 1,
+      },
+      {
+        name: "taille",
+        label: "Taille",
+        type: "text",
+        placeholder: "Ex: M, 42, One Size...",
+      },
+      {
+        name: "couleur",
+        label: "Couleur",
+        type: "text",
+        placeholder: "Ex: Rouge, Bleu, Vert...",
+      },
+
+      {
+        name: "etat_mode",
+        label: "État",
+        type: "select",
+        default: "Neuf avec étiquette",
+        options: ["Neuf avec étiquette", "Comme neuf", "Bon état", "Usé"],
+      },
+    ],
+  },
+  Immobilier: {
+    desc: "Maisons, appartements, terrains",
+    showPrice: true,
+    allowTroc: false,
+    fields: [
+      {
+        name: "type_immo",
+        label: "Type",
+        type: "select",
+        default: "Appartement",
+        options: ["Appartement", "Maison", "Terrain", "Bureau", "Commerce"],
+      },
+      {
+        name: "chambres",
+        label: "Chambres",
+        type: "number",
+        placeholder: "Ex: 3",
+      },
+      {
+        name: "surface",
+        label: "Surface (m²)",
+        type: "number",
+        placeholder: "Ex: 120",
+      },
+    ],
+  },
+  Services: {
+    desc: "Prestations et expertise",
+    showPrice: false,
+    allowTroc: false,
+    fields: [
+      {
+        name: "type_service",
+        label: "Type de service",
+        type: "text",
+        placeholder: "Ex: Plomberie, Electricien...",
+      },
+      {
+        name: "tarif_info",
+        label: "Information tarifaire",
+        type: "text",
+        placeholder: "Ex: À l'heure, Forfait...",
+      },
+    ],
+  },
+  Véhicules: {
+    desc: "Voitures, motos, pièces",
+    showPrice: true,
+    allowTroc: true,
+    fields: [
+      {
+        name: "marque",
+        label: "Marque",
+        type: "text",
+        placeholder: "Ex: Toyota",
+      },
+      {
+        name: "modele",
+        label: "Modèle",
+        type: "text",
+        placeholder: "Ex: RAV4",
+      },
+      {
+        name: "annee",
+        label: "Année",
+        type: "number",
+        placeholder: "Ex: 2022",
+      },
+      {
+        name: "kilometrage",
+        label: "Kilométrage (km)",
+        type: "number",
+        placeholder: "Ex: 50000",
+      },
+    ],
+  },
+  Autre: {
+    desc: "Catégorie personnalisée",
+    fields: [
+      {
+        name: "autres_precisions",
+        label: "Précisions",
+        type: "text",
+        placeholder: "Ex: Equipements des chantiers, ...",
+      },
+    ],
+  },
+};

@@ -1,9 +1,18 @@
 // components/ProductList.jsx
 import { useState } from "react";
-import { Edit2, Trash2, MapPin, ChevronDown, Package, Zap } from "lucide-react";
+import {
+  Edit2,
+  Trash2,
+  MapPin,
+  ChevronDown,
+  Package,
+  Zap,
+  Link,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTimeAgo } from "../hooks/useTimeAgo";
 import ProductForm from "./ProductForm";
+import { useNavigate } from "react-router-dom";
 
 const ProductCard = ({
   product,
@@ -14,9 +23,26 @@ const ProductCard = ({
   onCancelEdit,
   businessType,
 }) => {
+  const isV2 = !!product.title;
+  const displayTitle = product.title || product.name || "Sans titre";
+  const displayImage =
+    product.images && product.images.length > 0
+      ? product.images[0].image
+      : product.image;
+  const displayLocation = product.quartier
+    ? `${product.commune} (${product.quartier})`
+    : product.location || product.commune || "RDC";
   const timeAgo = useTimeAgo(product.updated_at);
   const isTroc = !!product.exchange_for;
   const [showFullForm, setShowFullForm] = useState(false);
+  // Business rules for category-based display
+  const CATEGORY_RULES = {
+    Services: { showPrice: false },
+    Immobilier: { showPrice: true },
+    Électronique: { showPrice: true },
+  };
+  const navigate = useNavigate();
+  const showPrice = CATEGORY_RULES[product.category]?.showPrice !== false;
 
   if (isEditing) {
     return (
@@ -26,7 +52,7 @@ const ProductCard = ({
       >
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-3 flex items-center justify-between">
           <span className="text-xs font-black uppercase tracking-widest text-white flex items-center gap-2">
-            <Edit2 size={14} /> Edition de l'article
+            <Edit2 size={14} /> Edition {isV2 ? "Annonce V2" : "Article V1"}
           </span>
           <button
             onClick={onCancelEdit}
@@ -40,18 +66,20 @@ const ProductCard = ({
           <div className="p-6">
             <div className="flex gap-4 mb-6">
               <img
-                src={product.image}
+                src={displayImage}
                 alt=""
                 className="w-24 h-24 object-cover rounded-2xl border border-slate-200 dark:border-white/10"
               />
               <div className="flex-1 min-w-0">
                 <p className="font-black text-slate-900 dark:text-white text-lg tracking-tight truncate">
-                  {product.name}
+                  {displayTitle}
                 </p>
                 <p className="text-blue-600 dark:text-blue-400 font-bold">
-                  {isTroc
-                    ? "VALEUR TROC"
-                    : `${product.price} ${product.currency}`}
+                  {showPrice && !isTroc
+                    ? `${product.price} ${product.currency}`
+                    : isTroc
+                      ? "VALEUR TROC"
+                      : null}
                 </p>
                 <button
                   onClick={() => setShowFullForm(true)}
@@ -100,44 +128,53 @@ const ProductCard = ({
       className="group relative flex flex-col sm:flex-row items-center gap-4 p-4 bg-white dark:bg-white/[0.02] hover:bg-slate-50 dark:hover:bg-white/[0.05] rounded-[2rem] border border-slate-200 dark:border-white/5 transition-all duration-300 shadow-sm dark:shadow-none"
     >
       {/* Image Section */}
+
       <div className="relative shrink-0 w-full sm:w-32 h-44 sm:h-32 overflow-hidden rounded-2xl border border-slate-200 dark:border-white/5">
         <img
-          src={product.image}
-          alt={product.name}
+          src={displayImage}
+          alt={displayTitle}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
           loading="lazy"
+          onClick={(e) => navigate(`/p/${slug}`)}
         />
+        {isV2 && (
+          <div className="absolute top-2 left-2 bg-accent text-white text-[8px] font-black px-1.5 py-0.5 rounded shadow-lg">
+            V2
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 to-transparent sm:hidden" />
-        <div className="absolute bottom-3 left-3 sm:hidden">
-          <p className="text-white font-black text-lg">
-            {product.price}{" "}
-            <span className="text-[10px] text-blue-400 uppercase font-bold">
-              {product.currency}
-            </span>
-          </p>
-        </div>
+        {showPrice && (
+          <div className="absolute bottom-3 left-3 sm:hidden">
+            <p className="text-white font-black text-lg">
+              {product.price}{" "}
+              <span className="text-[10px] text-blue-400 uppercase font-bold">
+                {product.currency}
+              </span>
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Info Section */}
       <div className="flex-1 min-w-0 w-full">
         <div className="flex justify-between items-start mb-1">
           <h3 className="font-black text-lg text-slate-900 dark:text-white tracking-tight truncate group-hover:text-green-600 dark:group-hover:text-green-500 transition-colors">
-            {product.name}
+            {displayTitle}
           </h3>
           <span className="hidden sm:block text-2xl font-black text-slate-900 dark:text-white tracking-tighter">
-            {product.price}{" "}
+            {showPrice && product.price}{" "}
             <span className="text-xs text-blue-600 dark:text-blue-500 uppercase font-black">
-              {product.currency}
+              {showPrice && product.currency}
             </span>
           </span>
         </div>
 
         <div className="flex flex-wrap items-center gap-3 mt-1">
-          {product.location && (
+          {displayLocation && (
             <div className="flex items-center gap-1 px-2 py-1 bg-slate-100 dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/5">
               <MapPin size={10} className="text-red-500" />
               <span className="text-[10px] text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider">
-                {product.location}
+                {displayLocation}
               </span>
             </div>
           )}
@@ -148,6 +185,20 @@ const ProductCard = ({
             </span>
           </div>
         </div>
+
+        {/* Specs V2 in Dashboard List */}
+        {isV2 && product.specs && Object.keys(product.specs).length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-2">
+            {Object.entries(product.specs).map(([key, val]) => (
+              <span
+                key={key}
+                className="text-[8px] bg-green-500/5 text-green-600 dark:text-green-500 px-1.5 py-0.5 rounded border border-green-500/10 font-black uppercase tracking-tighter"
+              >
+                {val}
+              </span>
+            ))}
+          </div>
+        )}
 
         <p className="mt-3 text-slate-500 dark:text-slate-500 text-xs line-clamp-1 italic">
           {product.description || "Aucune description fournie."}
@@ -166,7 +217,7 @@ const ProductCard = ({
           />
         </button>
         <button
-          onClick={() => onDelete(product.slug)}
+          onClick={() => onDelete(product.slug, isV2)}
           className="flex-1 sm:flex-none p-3 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-500 rounded-xl border border-red-500/10 transition-all active:scale-95 group/btn"
         >
           <Trash2

@@ -7,37 +7,42 @@ import BusinessShowcase from "../components/Homev2/BusinessShowcase";
 import AnalyticsPreview from "../components/Homev2/AnalyticsPreview";
 
 const Home = () => {
-  const [products, setProducts] = useState([]);
+  const [v1Products, setV1Products] = useState([]);
+  const [v2Listings, setV2Listings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Refs pour état d'authentification
-  let isAuthenticated = false;
-  try {
-    isAuthenticated = !!localStorage.getItem("access_token");
-  } catch {}
-
-  // Fetch produits
+  // Fetch produits & listings (Dual-Fetch)
   useEffect(() => {
     let isMounted = true;
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       try {
         setIsLoading(true);
-        const res = await api.get("/products/");
-        let safeData = [];
-        if (Array.isArray(res.data)) {
-          safeData = res.data;
-        } else if (Array.isArray(res.data?.results)) {
-          safeData = res.data.results;
+        const [v1Res, v2Res] = await Promise.all([
+          api.get("/products/"),
+          api.get("/v2/public/listings/"),
+        ]);
+
+        let safeV1 = [];
+        if (Array.isArray(v1Res.data)) safeV1 = v1Res.data;
+        else if (Array.isArray(v1Res.data?.results))
+          safeV1 = v1Res.data.results;
+
+        let safeV2 = [];
+        if (Array.isArray(v2Res.data)) safeV2 = v2Res.data;
+        else if (Array.isArray(v2Res.data?.results))
+          safeV2 = v2Res.data.results;
+
+        if (isMounted) {
+          setV1Products(safeV1);
+          setV2Listings(safeV2);
         }
-        if (isMounted) setProducts(safeData);
       } catch (error) {
-        console.error("Erreur chargement produits:", error);
-        if (isMounted) setProducts([]);
+        console.error("Erreur Dual-Fetch:", error);
       } finally {
         if (isMounted) setIsLoading(false);
       }
     };
-    fetchProducts();
+    fetchData();
     return () => {
       isMounted = false;
     };
@@ -46,21 +51,57 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-bg-primary">
       <HeroV2 />
-      
+
       <BusinessShowcase />
-      
+
       <AnalyticsPreview />
 
-      {/* Section Acheteurs */}
+      {/* Section V2 : PROXIMITE & PRO */}
+      {v2Listings.length > 0 && (
+        <div className="bg-gradient-to-b from-green-50/50 to-transparent dark:from-green-950/20 py-12">
+          <section className="px-6 mb-8 max-w-7xl mx-auto">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+              <div className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <div className="px-3 py-1 bg-green-500 rounded-full text-[10px] font-black text-white uppercase tracking-[0.2em] shadow-lg shadow-green-500/20">
+                    Premium
+                  </div>
+                  <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">
+                    PROXIMITÉ & PRO
+                  </h2>
+                </div>
+                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium max-w-md leading-relaxed">
+                  Découvrez les offres exclusives et vérifiées par nos experts
+                  pour un achat en toute sécurité.
+                </p>
+              </div>
+              <Link
+                to="/v2/all"
+                className="text-xs font-black text-green-600 dark:text-green-500 uppercase tracking-widest hover:translate-x-1 transition-transform"
+              >
+                Voir tout le catalogue Pro →
+              </Link>
+            </div>
+          </section>
+          <ProductGrid
+            products={v2Listings}
+            emptyMessage="Chargement des offres pro..."
+          />
+        </div>
+      )}
+
+      {/* Section Acheteurs (Categories) */}
       <Categories />
 
-      {/* Section Nouveautés */}
+      {/* Section Nouveautés V1 */}
       <section className="px-4 mt-8 mb-4 max-w-7xl mx-auto">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-bold text-text-primary">Nouveautés</h2>
+            <h2 className="text-xl font-bold text-text-primary">
+              Le Marché Niplan
+            </h2>
             <p className="text-sm text-text-secondary mt-0.5">
-              Découvrez les derniers articles
+              Découvrez les articles de nos vendeurs certifiés
             </p>
           </div>
           <Link
@@ -72,27 +113,19 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Grille produits */}
+      {/* Grille produits V1 */}
       {isLoading ? (
         <div className="px-4 py-12 flex justify-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent" />
         </div>
-      ) : !isLoading && Array.isArray(products) && products.length > 0 ? (
-        <ProductGrid products={products} />
+      ) : v1Products.length > 0 ? (
+        <ProductGrid products={v1Products} />
       ) : (
-        <div className="px-4 py-12 text-center text-text-secondary">
-          Aucun produit disponible pour le moment <br />
-          <Link
-            to={`https://wa.me/243899530506?text=${encodeURIComponent(
-              "Bonjour, je souhaite signaler que je n'ai vu aucun produit sur Niplan Market. Pouvez-vous m'aider ?",
-            )}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-white mt-4 text-green-700 px-6 py-3 rounded-full font-bold shadow-lg inline-block"
-          >
-            <i className="fab fa-whatsapp mr-1"></i> Contactez nous sur WhatsApp
-          </Link>
-        </div>
+        !v2Listings.length && (
+          <div className="px-4 py-12 text-center text-text-secondary">
+            Aucun produit disponible pour le moment...
+          </div>
+        )
       )}
 
       {/* Footer */}

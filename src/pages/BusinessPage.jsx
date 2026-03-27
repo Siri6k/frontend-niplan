@@ -242,14 +242,14 @@ const BusinessPage = () => {
               </div>
             </div>
             <div className="hidden sm:flex items-center gap-2 text-slate-500 dark:text-slate-700 text-[10px] font-black uppercase tracking-widest">
-              {business.products?.length || 0} Articles{" "}
+              {business.listings?.length || 0} Articles{" "}
               <ChevronRight size={14} />
             </div>
           </div>
 
-          {business.products && business.products.length > 0 ? (
+          {business.listings && business.listings.length > 0 ? (
             <div className="pb-20">
-              <ProductGrid products={business.products} />
+              <ProductGrid products={business.listings} />
             </div>
           ) : (
             <div className="p-20 glass-card bg-white/80 dark:bg-white/5 rounded-[3rem] border border-slate-200 dark:border-white/5 text-center">

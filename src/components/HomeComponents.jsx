@@ -1,5 +1,6 @@
 import React, { useCallback, memo } from "react";
-import { MapPin, MessageCircle, Heart, Eye } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { MapPin, MessageCircle, Heart, Eye, Zap } from "lucide-react";
 
 import { Link } from "react-router-dom";
 
@@ -83,20 +84,36 @@ const formatPrice = (value) => {
 
 const ProductCard = memo(
   ({ product, onOrder, onToggleFavorite, isFavorite }) => {
+    const navigate = useNavigate();
     const safeProduct = product || {};
 
     const {
       id,
-      name = "",
+      title = "",
+      name = "", // compatibilité V1
       price = 0,
       currency = "",
-      image = "",
-      location = "",
+      main_image = "",
+      image = "", // compatibilité V1
+      location = "", // compatibilité V1
+      commune = "",
+      quartier = "",
       business_name = "",
       vendor_phone = "",
       views = 0,
       is_new = false,
+      created_at = null,
+      images = [], // Multi-images V2
     } = safeProduct;
+
+    // Mapping intelligent pour Listing (V2) vs Product (V1)
+    const isV2 = !!title;
+    const displayTitle = title || name;
+    const displayImage = main_image || image;
+    const displayLocation = quartier ? `${commune} (${quartier})` : (location || commune || "Lubumbashi, RDC");
+    const hasMultipleImages = images && images.length > 0;
+    
+    const isNew = is_new || (created_at && (new Date() - new Date(created_at)) < 2 * 24 * 60 * 60 * 1000);
 
     const handleWhatsAppClick = useCallback(
       (e) => {
@@ -107,104 +124,115 @@ const ProductCard = memo(
     );
 
     const handleCardClick = useCallback(() => {
-      // Navigation vers détail produit (à implémenter)
-      // navigate(`/product/${id}`);
-      onOrder(product); // Pour l'instant garde le comportement actuel
-    }, [onOrder, product, id]);
+      const slug = product.slug || product.id;
+      navigate(`/p/${slug}/`); 
+    }, [navigate, product]);
 
     return (
-      <article className="group bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg dark:shadow-none dark:hover:shadow-2xl dark:hover:shadow-slate-950/50 transition-all duration-300 border border-gray-100 dark:border-slate-800 flex flex-col">
+      <article className={`group relative bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 border flex flex-col ${
+        isV2 
+          ? "border-green-500/20 dark:border-green-500/10 ring-1 ring-green-500/5 shadow-[0_0_20px_rgba(34,197,94,0.05)]" 
+          : "border-gray-100 dark:border-slate-800"
+      }`}>
+        {/* V2 Glow Effect */}
+        {isV2 && (
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-500" />
+        )}
+
         {/* Image Container */}
         <div
-          className="relative w-full aspect-[4/3] bg-gray-100 dark:bg-slate-800 overflow-hidden cursor-pointer"
+          className="relative w-full aspect-[4/3] bg-gray-100 dark:bg-slate-800 overflow-hidden cursor-pointer z-10"
           onClick={handleCardClick}
         >
           <img
-            src={image || "/placeholder-product.jpg"}
-            alt={name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            src={displayImage || "/placeholder-product.jpg"}
+            alt={displayTitle}
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
             loading="lazy"
           />
 
-          {/* Badge Nouveau */}
-          {is_new && (
-            <span className="absolute top-2 left-2 bg-accent text-white text-[10px] font-bold px-2 py-1 rounded-full">
-              NOUVEAU
-            </span>
-          )}
+          {/* Badges Container */}
+          <div className="absolute top-2 left-2 flex flex-col gap-1.5">
+            {isV2 ? (
+              <span className="bg-gradient-to-r from-amber-400 to-yellow-600 text-white text-[8px] font-black px-2 py-0.5 rounded shadow-lg flex items-center gap-1 uppercase tracking-widest">
+                <Zap size={8} fill="currentColor" /> Premium Pro
+              </span>
+            ) : isNew && (
+              <span className="bg-green-600 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg">
+                NOUVEAU
+              </span>
+            )}
+            
+            {hasMultipleImages && (
+              <div className="bg-black/60 backdrop-blur-md text-white text-[8px] font-black px-2 py-1 rounded shadow-lg border border-white/10 uppercase tracking-tighter">
+                +{images.length} PHOTOS
+              </div>
+            )}
+          </div>
 
-          {/* Bouton Favori */}
           <button
             onClick={(e) => {
               e.stopPropagation();
               onToggleFavorite?.(id);
             }}
-            className={`absolute top-2 right-2 p-2 rounded-full backdrop-blur-md transition-all duration-200 ${
+            className={`absolute top-2 right-2 p-2 rounded-xl backdrop-blur-md transition-all duration-300 ${
               isFavorite
-                ? "bg-red-500 text-white"
-                : "bg-white/90 dark:bg-slate-900/90 text-gray-400 hover:text-red-500"
+                ? "bg-red-500 text-white scale-110"
+                : "bg-white/90 dark:bg-slate-900/90 text-gray-400 hover:text-red-500 hover:scale-110 shadow-lg"
             }`}
-            aria-label={
-              isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"
-            }
           >
             <Heart size={16} fill={isFavorite ? "currentColor" : "none"} />
           </button>
 
-          {/* Overlay au hover */}
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
-
-          {/* Compteur vues */}
-          <div className="absolute bottom-2 right-2 flex items-center gap-1 text-white text-[10px] bg-black/50 backdrop-blur-sm px-2 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="absolute bottom-2 right-2 flex items-center gap-1 text-white text-[10px] bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity">
             <Eye size={12} />
-            {views}
+            {views || 0}
           </div>
         </div>
 
         {/* Content */}
-        <div className="p-3 flex flex-col flex-1">
-          {/* Nom */}
+        <div className="p-4 flex flex-col flex-1 z-10 bg-white dark:bg-slate-900">
           <h3
-            className="font-semibold text-sm text-gray-900 dark:text-slate-100 line-clamp-2 mb-1 group-hover:text-accent transition-colors cursor-pointer"
+            className="font-black text-sm text-gray-900 dark:text-white line-clamp-2 mb-2 group-hover:text-green-600 dark:group-hover:text-green-500 transition-colors cursor-pointer leading-tight tracking-tight"
             onClick={handleCardClick}
           >
-            {name}
+            {displayTitle}
           </h3>
 
-          {/* Prix */}
-          <div className="flex items-baseline gap-1 mb-2">
-            <span className="text-lg font-black text-green-600 dark:text-green-400">
+          {/* Mini Specs V2 */}
+          {isV2 && safeProduct.specs && Object.keys(safeProduct.specs).length > 0 && (
+            <div className="flex flex-wrap gap-1 mb-3">
+              {Object.entries(safeProduct.specs).slice(0, 2).map(([key, val]) => (
+                <span key={key} className="text-[9px] bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded border border-slate-200 dark:border-white/5 font-bold uppercase tracking-tighter">
+                  {val}
+                </span>
+              ))}
+            </div>
+          )}
+
+          <div className="flex items-baseline gap-1 mt-auto mb-3">
+            <span className="text-xl font-black text-slate-900 dark:text-white tracking-tighter">
               {formatPrice(price)}
             </span>
-            <span className="text-xs font-medium text-green-600/70 dark:text-green-400/70">
+            <span className="text-[10px] font-black text-green-600 dark:text-green-500 uppercase tracking-widest">
               {currency}
             </span>
           </div>
 
-          {/* Meta info */}
-          <div className="space-y-1.5 mb-3">
-            {/* Localisation */}
-            <div className="flex items-center text-xs text-gray-500 dark:text-slate-400 gap-1.5">
-              <MapPin size={12} className="text-red-400 shrink-0" />
-              <span className="truncate">
-                {location ? `${location}, RDC` : "Lubumbashi, RDC"}
-              </span>
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center text-[10px] text-gray-500 dark:text-slate-400 gap-1.5 font-bold uppercase tracking-widest">
+              <MapPin size={12} className="text-red-500 shrink-0" />
+              <span className="truncate">{displayLocation}</span>
             </div>
 
-            {/* Business */}
-            <p className="text-[10px] text-gray-400 dark:text-slate-500 uppercase tracking-wider font-medium truncate">
-              {business_name}
-            </p>
+            <button
+              onClick={handleWhatsAppClick}
+              className="w-full bg-slate-950 dark:bg-white text-white dark:text-slate-950 py-3 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 hover:bg-green-600 dark:hover:bg-green-500 hover:text-white active:scale-95 shadow-lg shadow-black/5"
+            >
+              <MessageCircle size={14} />
+              Commander
+            </button>
           </div>
-
-          {/* Bouton Commander */}
-          <button
-            onClick={handleWhatsAppClick}
-            className="mt-auto w-full bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-500 text-white py-2.5 rounded-xl flex items-center justify-center gap-2 text-xs font-bold transition-all duration-200 active:scale-95 shadow-sm hover:shadow-md dark:shadow-none"
-          >
-            <MessageCircle size={14} />
-            Commander
-          </button>
         </div>
       </article>
     );
