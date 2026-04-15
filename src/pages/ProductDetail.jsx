@@ -32,7 +32,9 @@ const ProductDetail = () => {
   const [isDetailsOpen, setIsDetailsOpen] = useState(true);
 
   // ✅ HOOK TOUJOURS APPELÉ - plus de condition ici
-  const timeAgo = useTimeAgo(product?.created_at);
+  const timeAgo = useTimeAgo(
+    product?.created_at || product?.updated_at || new Date().toISOString(),
+  );
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -82,6 +84,30 @@ const ProductDetail = () => {
     }
   };
 
+  // ✅ Images filtrées et sécurisées - TOUT avec optional chaining
+  const images = React.useMemo(() => {
+    if (product?.images?.length > 0) {
+      // ← Ajoutez ? après product
+      const validImages = product.images
+        .map((img) => img?.image)
+        .filter((img) => img != null);
+      if (validImages.length > 0) return validImages;
+    }
+    return [
+      product?.main_image || product?.image || "/placeholder-product.jpg",
+    ]; // ← Déjà OK
+  }, [product]);
+
+  const specs = product?.specs || {}; // ← Ajoutez ? après product
+
+  // ✅ Helper pour formater la localisation
+  const formatLocation = () => {
+    const parts = [];
+    if (product?.commune) parts.push(product.commune); // ← Ajoutez ? après product
+    if (product?.quartier) parts.push(product.quartier); // ← Ajoutez ? après product
+    return parts.length > 0 ? parts.join(", ") : "Localisation non précisée";
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center">
@@ -103,27 +129,6 @@ const ProductDetail = () => {
   }
 
   if (!product) return null;
-
-  // ✅ Images filtrées et sécurisées
-  const images = React.useMemo(() => {
-    if (product.images?.length > 0) {
-      const validImages = product.images
-        .map((img) => img?.image)
-        .filter((img) => img != null);
-      if (validImages.length > 0) return validImages;
-    }
-    return [product.main_image || product.image || "/placeholder-product.jpg"];
-  }, [product]);
-
-  const specs = product.specs || {};
-
-  // ✅ Helper pour formater la localisation
-  const formatLocation = () => {
-    const parts = [];
-    if (product.commune) parts.push(product.commune);
-    if (product.quartier) parts.push(product.quartier);
-    return parts.length > 0 ? parts.join(", ") : "Localisation non précisée";
-  };
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-20 pb-20 relative overflow-hidden">
@@ -225,7 +230,7 @@ const ProductDetail = () => {
                 </div>
                 <div className="flex items-center gap-4 text-slate-400">
                   <div className="flex items-center gap-1">
-                    <Eye size={16} />
+                    <Eye size={16} />{" "}
                     <span className="text-xs font-bold">
                       {product.views || 0}
                     </span>
@@ -234,7 +239,7 @@ const ProductDetail = () => {
                     <Clock size={16} />
                     <span className="text-xs font-bold">
                       {/* ✅ Utilisation de la variable timeAgo définie en haut */}
-                      Posté il y a {timeAgo || "quelques instants"}
+                      Posté {timeAgo || "quelques instants"}
                     </span>
                   </div>
                 </div>
