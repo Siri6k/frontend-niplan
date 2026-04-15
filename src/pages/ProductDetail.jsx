@@ -205,7 +205,10 @@ const ProductDetail = () => {
                     <Clock size={16} />
                     <span className="text-xs font-bold">
                       Posté il y a{" "}
-                      {useTimeAgo(product.created_at) || "quelques instants"}
+                      {(product &&
+                        product?.created_at &&
+                        useTimeAgo(product.created_at)) ||
+                        "quelques instants"}
                     </span>
                   </div>
                 </div>
