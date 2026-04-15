@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import api from "../api";
 import toast from "react-hot-toast";
+import { useTimeAgo } from "../hooks/useTimeAgo";
 
 const ProductDetail = () => {
   const { slug } = useParams();
@@ -184,7 +185,7 @@ const ProductDetail = () => {
                 {product.title || product.name}
               </h1>
 
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-4">
                 <div className="flex items-baseline gap-2">
                   <span className="text-4xl font-black text-slate-900 dark:text-white">
                     {product.price}
@@ -202,7 +203,10 @@ const ProductDetail = () => {
                   </div>
                   <div className="flex items-center gap-1">
                     <Clock size={16} />
-                    <span className="text-xs font-bold">Posté il y a 2j</span>
+                    <span className="text-xs font-bold">
+                      Posté il y a{" "}
+                      {useTimeAgo(product.created_at) || "quelques instants"}
+                    </span>
                   </div>
                 </div>
               </div>
