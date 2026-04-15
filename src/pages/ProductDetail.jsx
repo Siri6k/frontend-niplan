@@ -228,7 +228,7 @@ const ProductDetail = () => {
                     {product.currency || "USD"}
                   </span>
                 </div>
-                <div className="flex items-center gap-4 text-slate-400">
+                <div className="flex items-center gap-4 text-slate-400 between">
                   <div className="flex items-center gap-1">
                     <Eye size={16} />{" "}
                     <span className="text-xs font-bold">
