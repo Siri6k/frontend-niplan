@@ -15,7 +15,6 @@ import {
   Info,
   Maximize2,
   X,
-  CreditCard,
   CheckCircle2,
   ChevronDown,
 } from "lucide-react";
@@ -32,6 +31,9 @@ const ProductDetail = () => {
   const [showFullImage, setShowFullImage] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(true);
 
+  // ✅ HOOK TOUJOURS APPELÉ - plus de condition ici
+  const timeAgo = useTimeAgo(product?.created_at);
+
   useEffect(() => {
     const fetchProduct = async () => {
       try {
@@ -41,7 +43,7 @@ const ProductDetail = () => {
       } catch (err) {
         console.error("Fetch error:", err);
         toast.error("Article introuvable");
-        // navigate("/");
+        navigate("/");
       } finally {
         setLoading(false);
       }
@@ -51,7 +53,7 @@ const ProductDetail = () => {
 
   const handleWhatsApp = () => {
     if (!product) return;
-    const phone = product.vendor_phone || "243899530506"; // Utilise le nouveau champ aplati
+    const phone = product.vendor_phone || "243899530506";
     const text = encodeURIComponent(
       `Bonjour, je suis intéressé par votre article "${product.title || product.name}" sur Niplan.\nLien : ${window.location.href}`,
     );
@@ -68,6 +70,15 @@ const ProductDetail = () => {
     } else {
       navigator.clipboard.writeText(window.location.href);
       toast.success("Lien copié !");
+    }
+  };
+
+  // ✅ Gestionnaire de navigation sécurisé
+  const handleSellerClick = () => {
+    if (product?.business_slug) {
+      navigate(`/b/${product.business_slug}`);
+    } else {
+      toast.error("Profil vendeur indisponible");
     }
   };
 
@@ -93,12 +104,26 @@ const ProductDetail = () => {
 
   if (!product) return null;
 
-  const images =
-    product.images?.length > 0
-      ? product.images.map((img) => img.image)
-      : [product.main_image || product.image || "/placeholder-product.jpg"];
+  // ✅ Images filtrées et sécurisées
+  const images = React.useMemo(() => {
+    if (product.images?.length > 0) {
+      const validImages = product.images
+        .map((img) => img?.image)
+        .filter((img) => img != null);
+      if (validImages.length > 0) return validImages;
+    }
+    return [product.main_image || product.image || "/placeholder-product.jpg"];
+  }, [product]);
 
   const specs = product.specs || {};
+
+  // ✅ Helper pour formater la localisation
+  const formatLocation = () => {
+    const parts = [];
+    if (product.commune) parts.push(product.commune);
+    if (product.quartier) parts.push(product.quartier);
+    return parts.length > 0 ? parts.join(", ") : "Localisation non précisée";
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-20 pb-20 relative overflow-hidden">
@@ -132,7 +157,7 @@ const ProductDetail = () => {
             >
               <img
                 src={images[activeImage]}
-                alt={product.title}
+                alt={product.title || "Produit"}
                 className="w-full h-full object-cover"
               />
               <button
@@ -168,7 +193,11 @@ const ProductDetail = () => {
                         : "border-slate-200 dark:border-white/5 opacity-60 hover:opacity-100"
                     }`}
                   >
-                    <img src={img} className="w-full h-full object-cover" />
+                    <img
+                      src={img}
+                      className="w-full h-full object-cover"
+                      alt={`Thumbnail ${idx + 1}`}
+                    />
                   </button>
                 ))}
               </div>
@@ -188,10 +217,10 @@ const ProductDetail = () => {
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <div className="flex items-baseline gap-2">
                   <span className="text-4xl font-black text-slate-900 dark:text-white">
-                    {product.price}
+                    {product.price || "0"}
                   </span>
                   <span className="text-sm font-black text-blue-600 dark:text-blue-500 uppercase tracking-widest">
-                    {product.currency}
+                    {product.currency || "USD"}
                   </span>
                 </div>
                 <div className="flex items-center gap-4 text-slate-400">
@@ -204,11 +233,8 @@ const ProductDetail = () => {
                   <div className="flex items-center gap-1">
                     <Clock size={16} />
                     <span className="text-xs font-bold">
-                      Posté il y a{" "}
-                      {(product &&
-                        product?.created_at &&
-                        useTimeAgo(product.created_at)) ||
-                        "quelques instants"}
+                      {/* ✅ Utilisation de la variable timeAgo définie en haut */}
+                      Posté il y a {timeAgo || "quelques instants"}
                     </span>
                   </div>
                 </div>
@@ -266,7 +292,7 @@ const ProductDetail = () => {
                                 {key}
                               </p>
                               <p className="font-black text-slate-900 dark:text-white text-sm">
-                                {val}
+                                {val || "-"}
                               </p>
                             </div>
                           ))}
@@ -303,8 +329,9 @@ const ProductDetail = () => {
                   <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-0.5">
                     Localisation
                   </p>
+                  {/* ✅ Utilisation du helper sécurisé */}
                   <p className="font-black text-slate-900 dark:text-white">
-                    {product.commune}, {product.quartier}
+                    {formatLocation()}
                   </p>
                 </div>
               </div>
@@ -317,9 +344,9 @@ const ProductDetail = () => {
                         product.business_logo ||
                         "https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
                       }
-                      className="w-12 h-12 rounded-full border-2 border-slate-200 dark:border-white/10"
+                      className="w-12 h-12 rounded-full border-2 border-slate-200 dark:border-white/10 cursor-pointer"
                       alt="Seller"
-                      onClick={(e) => navigate(`/b/${product?.business_slug}`)}
+                      onClick={handleSellerClick} // ✅ Navigation sécurisée
                     />
                     {product.is_verified && (
                       <div className="absolute -bottom-1 -right-1 bg-green-500 p-1 rounded-full border-2 border-white dark:border-slate-900">
@@ -333,7 +360,7 @@ const ProductDetail = () => {
                     </p>
                     <div className="flex items-center gap-1.5">
                       <p className="font-black text-slate-900 dark:text-white text-sm">
-                        {product.business_name}
+                        {product.business_name || "Vendeur inconnu"}
                       </p>
                       {product.is_verified && (
                         <CheckCircle2 size={12} className="text-green-500" />
