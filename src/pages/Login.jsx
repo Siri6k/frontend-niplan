@@ -570,7 +570,7 @@ const Login = () => {
           <div className="space-y-4">
             <div className="bg-orange-500/10 border border-orange-500/20 p-4 rounded-2xl mb-4 text-center">
               <p className="text-xs text-orange-600 dark:text-orange-400 font-bold uppercase tracking-wider">
-                📱 Code envoyé sur WhatsApp
+                📱 Code envoyé via sms
               </p>
             </div>
 
@@ -619,13 +619,6 @@ const Login = () => {
               )}
             </div>
 
-            <button
-              onClick={handleOtpVerifyLater}
-              disabled={isLoading}
-              className="w-full py-2 text-xs font-bold text-slate-500 hover:text-slate-700 dark:hover:text-slate-400 uppercase tracking-widest flex items-center justify-center gap-2"
-            >
-              Continuer sans vérifier <ArrowRight size={14} />
-            </button>
           </div>
         );
 

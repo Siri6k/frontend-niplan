@@ -1095,7 +1095,6 @@ const ProductForm = ({
                         <input
                           type={field.type}
                           placeholder={field.placeholder}
-                          className={UI.input}
                           value={formData.specs[field.name] || ""}
                           onChange={(e) =>
                             setFormData({

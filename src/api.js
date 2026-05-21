@@ -1,7 +1,9 @@
 import axios from "axios";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8000/api",
+  baseURL: API_BASE_URL,
 });
 
 let isRefreshing = false;
@@ -21,7 +23,7 @@ api.interceptors.request.use((config) => {
   const token = localStorage.getItem("access_token");
 
   // Bloque requêtes protégées si token absent
-  if (!token && config.url.includes("/my-")) {
+  if (!token && config.url?.includes("/my-")) {
     return Promise.reject(new axios.Cancel("No token yet"));
   }
 
@@ -60,10 +62,9 @@ api.interceptors.response.use(
 
         if (!refresh) throw new Error("No refresh token");
 
-        const res = await axios.post(
-          `${import.meta.env.VITE_API_URL}/token/refresh/`,
-          { refresh },
-        );
+        const res = await axios.post(`${API_BASE_URL}/token/refresh/`, {
+          refresh,
+        });
 
         const newToken = res.data.access;
 
