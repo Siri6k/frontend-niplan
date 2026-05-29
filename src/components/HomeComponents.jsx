@@ -1,8 +1,14 @@
 import React, { useCallback, memo } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapPin, MessageCircle, Heart, Eye, Zap } from "lucide-react";
+import { MapPin, MessageCircle, Heart, Eye, Zap, ShoppingBag } from "lucide-react";
 
 import { Link } from "react-router-dom";
+import { trackAnalyticsEvent } from "../utils/analytics";
+import {
+  buildListingWhatsAppMessage,
+  formatPrice,
+  openWhatsApp,
+} from "../utils/whatsapp";
 
 export const Hero = () => {
   // On vérifie si le token existe
@@ -75,12 +81,6 @@ export const ProductSkeleton = () => (
     </div>
   </div>
 );
-
-const formatPrice = (value) => {
-  const number = Number(value);
-  if (Number.isNaN(number)) return "0";
-  return number.toLocaleString();
-};
 
 const ProductCard = memo(
   ({ product, onOrder, onToggleFavorite, isFavorite }) => {
@@ -242,7 +242,7 @@ const ProductCard = memo(
             </div>
 
             <button
-              onClick={handleCardClick}
+              onClick={handleWhatsAppClick}
               className="w-full bg-slate-950 dark:bg-white text-white dark:text-slate-950 py-3 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 hover:bg-green-600 dark:hover:bg-green-500 hover:text-white active:scale-95 shadow-lg shadow-black/5"
             >
               <MessageCircle size={14} />
@@ -265,6 +265,22 @@ export const ProductGrid = ({
   emptyMessage = "Aucun produit disponible",
 }) => {
   const handleWhatsAppOrder = useCallback((product) => {
+    const trackedPhone =
+      product.vendeur_phone ?? product.vendor_phone ?? "243899530506";
+    const trackedMessage = buildListingWhatsAppMessage(product);
+
+    trackAnalyticsEvent({
+      event_type: "whatsapp_click",
+      source: "listing_card",
+      listing_slug: product.slug,
+      business_slug: product.business_slug,
+      metadata: {
+        title: product.title || product.name,
+      },
+    });
+    openWhatsApp(trackedPhone, trackedMessage);
+    return;
+
     const phone =
       product.vendeur_phone ?? product.vendor_phone ?? "243899530506";
     const message = `Bonjour, je suis intéressé par votre produit : *${formatPrice(product.price)} ${product.currency}.\n\nEst-il toujours disponible ?\n\n_Vu sur Niplan Market_`;

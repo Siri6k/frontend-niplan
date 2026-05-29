@@ -21,6 +21,8 @@ import {
 import api from "../api";
 import toast from "react-hot-toast";
 import { useTimeAgo } from "../hooks/useTimeAgo";
+import { trackAnalyticsEvent } from "../utils/analytics";
+import { buildListingWhatsAppMessage, openWhatsApp } from "../utils/whatsapp";
 
 const ProductDetail = () => {
   const { slug } = useParams();
@@ -55,6 +57,18 @@ const ProductDetail = () => {
 
   const handleWhatsApp = () => {
     if (!product) return;
+    trackAnalyticsEvent({
+      event_type: "whatsapp_click",
+      source: "listing_detail",
+      listing_slug: product.slug,
+      business_slug: product.business_slug,
+      metadata: {
+        title: product.title || product.name,
+      },
+    });
+    openWhatsApp(product.vendor_phone || "243899530506", buildListingWhatsAppMessage(product));
+    return;
+
     const phone = product.vendor_phone || "243899530506";
     const text = encodeURIComponent(
       `Bonjour, je suis intéressé par votre article "${product.title || product.name}" sur Niplan.\nLien : ${window.location.href}`,

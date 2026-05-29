@@ -16,6 +16,8 @@ import {
   Star,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { trackAnalyticsEvent } from "../utils/analytics";
+import { buildBusinessWhatsAppMessage, openWhatsApp } from "../utils/whatsapp";
 
 const BusinessPage = () => {
   const { slug } = useParams();
@@ -52,6 +54,21 @@ const BusinessPage = () => {
       navigator.clipboard.writeText(window.location.href);
       toast.success("Lien de la boutique copié !");
     }
+  };
+
+  const handleWhatsApp = () => {
+    trackAnalyticsEvent({
+      event_type: "whatsapp_click",
+      source: "business_page",
+      business_slug: business?.slug,
+      metadata: {
+        business_name: business?.name,
+      },
+    });
+    openWhatsApp(
+      business?.owner_phone || "243899530506",
+      buildBusinessWhatsAppMessage(business),
+    );
   };
 
   if (isLoading) {
@@ -203,10 +220,8 @@ const BusinessPage = () => {
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <a
-                href={`https://wa.me/${business.owner_phone}`}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={handleWhatsApp}
                 className="flex items-center justify-center gap-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white py-5 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-lg shadow-green-500/20 hover:scale-[1.02] active:scale-95 transition-all group"
               >
                 <MessageCircle
@@ -214,7 +229,7 @@ const BusinessPage = () => {
                   className="group-hover:rotate-12 transition-transform"
                 />
                 Contacter sur WhatsApp
-              </a>
+              </button>
               <button
                 onClick={handleShare}
                 className="flex items-center justify-center gap-3 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-900 dark:text-white py-5 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] border border-slate-200 dark:border-white/5 active:scale-95 transition-all"

@@ -11,6 +11,8 @@ import {
   TrendingUp,
   LayoutGrid,
   Search,
+  MessageCircle,
+  BarChart3,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../api";
@@ -26,6 +28,7 @@ const Dashboard = () => {
   const [business, setBusiness] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [analyticsSummary, setAnalyticsSummary] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
   const role = localStorage.getItem("role") || "vendor";
   const isPhoneVerified = localStorage.getItem("is_phone_verified") || "false";
@@ -86,6 +89,14 @@ const Dashboard = () => {
       // On combine et on trie par ID ou date (décroissant)
       const merged = [...v2Listings];
       setProducts(merged);
+
+      api
+        .get("/analytics/vendor-summary/")
+        .then((res) => setAnalyticsSummary(res.data))
+        .catch((error) => {
+          console.warn("Analytics summary unavailable", error);
+          setAnalyticsSummary(null);
+        });
     } catch (err) {
       console.error("Dashboard Fetch Error:", err);
       toast.error("Erreur de chargement des données");
@@ -300,6 +311,47 @@ const Dashboard = () => {
           >
             {business && <ShareBusiness slug={business.slug} />}
           </motion.div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="glass-card bg-white/80 dark:bg-white/5 rounded-3xl p-5 border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-none">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">
+                Clics WhatsApp
+              </p>
+              <MessageCircle size={18} className="text-green-600 dark:text-green-500" />
+            </div>
+            <p className="text-3xl font-black text-slate-900 dark:text-white">
+              {analyticsSummary?.whatsapp_clicks_total ?? 0}
+            </p>
+          </div>
+
+          <div className="glass-card bg-white/80 dark:bg-white/5 rounded-3xl p-5 border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-none">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">
+                7 derniers jours
+              </p>
+              <TrendingUp size={18} className="text-blue-600 dark:text-blue-400" />
+            </div>
+            <p className="text-3xl font-black text-slate-900 dark:text-white">
+              {analyticsSummary?.whatsapp_clicks_7d ?? 0}
+            </p>
+          </div>
+
+          <div className="glass-card bg-white/80 dark:bg-white/5 rounded-3xl p-5 border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-none">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">
+                Top annonce
+              </p>
+              <BarChart3 size={18} className="text-amber-600 dark:text-amber-400" />
+            </div>
+            <p className="text-sm font-black text-slate-900 dark:text-white truncate">
+              {analyticsSummary?.top_listings?.[0]?.title || "Aucun clic"}
+            </p>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mt-2">
+              {analyticsSummary?.top_listings?.[0]?.whatsapp_clicks ?? 0} clics
+            </p>
+          </div>
         </div>
 
         {/* --- PRODUCTS LIST HEADER --- */}
