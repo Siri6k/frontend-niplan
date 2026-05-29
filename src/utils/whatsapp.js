@@ -11,21 +11,32 @@ export const formatPrice = (value) => {
   return number.toLocaleString();
 };
 
-export const buildListingWhatsAppMessage = (listing, currentUrl = window.location.href) => {
+export const buildListingWhatsAppMessage = (
+  listing,
+  currentUrl = window.location.href,
+  details = false,
+) => {
   const title = listing?.title || listing?.name || "cet article";
-  const price = listing?.price ? `${formatPrice(listing.price)} ${listing.currency || ""}`.trim() : "";
+  const price = listing?.price
+    ? `${formatPrice(listing.price)} ${listing.currency || ""}`.trim()
+    : "";
+  const mainImage = listing?.main_image || listing?.images?.[0]?.image;
+  const url = mainImage || `${currentUrl}${details ? `/${listing.slug}` : ""}`;
   return [
     `Bonjour, je suis interesse par votre article "${title}" sur Niplan.`,
     price ? `Prix: ${price}` : null,
-    `Lien: ${currentUrl}`,
     "",
     "Est-il toujours disponible ?",
+    `${url}`,
   ]
     .filter(Boolean)
     .join("\n");
 };
 
-export const buildBusinessWhatsAppMessage = (business, currentUrl = window.location.href) => {
+export const buildBusinessWhatsAppMessage = (
+  business,
+  currentUrl = window.location.href,
+) => {
   return [
     `Bonjour, je viens de voir votre boutique ${business?.name || "Niplan"} sur Niplan.`,
     `Lien: ${currentUrl}`,

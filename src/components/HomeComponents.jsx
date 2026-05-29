@@ -1,6 +1,13 @@
 import React, { useCallback, memo } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapPin, MessageCircle, Heart, Eye, Zap, ShoppingBag } from "lucide-react";
+import {
+  MapPin,
+  MessageCircle,
+  Heart,
+  Eye,
+  Zap,
+  ShoppingBag,
+} from "lucide-react";
 
 import { Link } from "react-router-dom";
 import { trackAnalyticsEvent } from "../utils/analytics";
@@ -267,7 +274,10 @@ export const ProductGrid = ({
   const handleWhatsAppOrder = useCallback((product) => {
     const trackedPhone =
       product.vendeur_phone ?? product.vendor_phone ?? "243899530506";
-    const trackedMessage = buildListingWhatsAppMessage(product);
+    const trackedMessage = buildListingWhatsAppMessage(
+      product,
+      (details = true),
+    );
 
     trackAnalyticsEvent({
       event_type: "whatsapp_click",
