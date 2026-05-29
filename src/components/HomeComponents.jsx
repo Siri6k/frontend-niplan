@@ -275,8 +275,9 @@ export const ProductGrid = ({
     const trackedPhone =
       product.vendeur_phone ?? product.vendor_phone ?? "243899530506";
     const trackedMessage = buildListingWhatsAppMessage(
-      product,
-      (details = true),
+      product, // listing
+      window.location.href, // currentUrl (optional, has default)
+      true, // details
     );
 
     trackAnalyticsEvent({
