@@ -91,7 +91,7 @@ export function InstallBanner() {
                 Installer sur iPhone
               </p>
               <p className="text-[11px] opacity-90 leading-tight flex items-center gap-1">
-                <Share size={10} /> puis "Sur l'écran d'accueil"
+                Cliques sur <Share size={14} /> puis  "Ajouter à l'écran d'accueil"
               </p>
             </div>
           </div>
