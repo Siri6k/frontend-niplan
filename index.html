@@ -5,27 +5,43 @@
 
     <title>Niplan Market – Acheter & vendre en ligne en RDC</title>
 
+    <!-- Favicon standard -->
     <link rel="icon" type="image/png" href="/logo.png" />
 
-    <!-- Mobile -->
+    <!-- Mobile & Viewport -->
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1, maximum-scale=1"
+      content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover"
     />
-    <meta name="theme-color" content="#2563eb" />
+    <meta
+      name="theme-color"
+      content="#2563eb"
+      media="(prefers-color-scheme: light)"
+    />
+    <meta
+      name="theme-color"
+      content="#1e3a8a"
+      media="(prefers-color-scheme: dark)"
+    />
 
-    <!-- SEO -->
+    <!-- Performance : Preconnect ressources externes -->
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
+    <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+
+    <!-- SEO de base -->
     <meta
       name="description"
       content="Niplan Market est une plateforme congolaise pour acheter et vendre en ligne en RDC. Livraison rapide, vendeurs locaux et paiement sécurisé."
     />
-
     <meta
       name="keywords"
-      content="e-commerce RDC, marketplace Congo, acheter en ligne RDC, vendre en ligne Kinshasa, boutique en ligne Congo"
+      content="e-commerce RDC, marketplace Congo, acheter en ligne RDC, vendre en ligne Kinshasa, boutique en ligne Congo, Lubumbashi, Goma, Bukavu"
     />
+    <meta name="author" content="Niplan Market" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <link rel="canonical" href="https://niplan-market.onrender.com/" />
 
-    <!-- Google -->
+    <!-- Google / Schema.org -->
     <meta itemprop="name" content="Niplan Market" />
     <meta
       itemprop="description"
@@ -36,9 +52,10 @@
       content="https://res.cloudinary.com/dihwey5iz/image/upload/v1755685218/My%20Brand/niplan_wms8y0_0dcaff.png"
     />
 
-    <!-- Open Graph (Facebook / WhatsApp) -->
+    <!-- Open Graph (Facebook / WhatsApp / LinkedIn) -->
     <meta property="og:locale" content="fr_FR" />
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Niplan Market" />
     <meta
       property="og:title"
       content="Niplan Market – Marketplace congolaise"
@@ -52,9 +69,13 @@
       property="og:image"
       content="https://res.cloudinary.com/dihwey5iz/image/upload/v1755685218/My%20Brand/niplan_wms8y0_0dcaff.png"
     />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Logo Niplan Market" />
 
-    <!-- Twitter -->
+    <!-- Twitter / X -->
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@niplanmarket" />
     <meta name="twitter:title" content="Niplan Market" />
     <meta
       name="twitter:description"
@@ -65,10 +86,48 @@
       content="https://res.cloudinary.com/dihwey5iz/image/upload/v1755685218/My%20Brand/niplan_wms8y0_0dcaff.png"
     />
 
-    <!-- PWA -->
+    <!-- PWA : Manifest -->
     <link rel="manifest" href="/manifest.json" />
+
+    <!-- PWA : iOS / Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="Niplan Market" />
     <link rel="apple-touch-icon" href="/logo192.png" />
-    <!-- Script anti-flash (FOUC) -->
+    <link
+      rel="apple-touch-icon"
+      sizes="152x152"
+      href="/icons/icon-152x152.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="/icons/icon-180x180.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="192x192"
+      href="/icons/icon-192x192.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="512x512"
+      href="/icons/icon-512x512.png"
+    />
+
+    <!-- PWA : Microsoft / Edge -->
+    <meta name="msapplication-TileColor" content="#2563eb" />
+    <meta name="msapplication-TileImage" content="/logo192.png" />
+    <meta name="msapplication-config" content="/browserconfig.xml" />
+
+    <!-- PWA : Thème & Affichage -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="Niplan Market" />
+
+    <!-- Anti-flash dark mode (FOUC) -->
     <script>
       (function () {
         const theme = localStorage.getItem("theme");
@@ -83,10 +142,38 @@
   </head>
 
   <body>
-    <noscript
-      >Vous devez activer JavaScript pour utiliser Niplan Market.</noscript
-    >
-    <script type="module" src="/src/main.jsx"></script>
+    <noscript>
+      <style>
+        noscript {
+          display: block;
+          padding: 2rem;
+          text-align: center;
+          font-family: system-ui, sans-serif;
+          color: #374151;
+        }
+        noscript h1 {
+          font-size: 1.25rem;
+          margin-bottom: 0.5rem;
+        }
+        noscript p {
+          font-size: 0.875rem;
+          color: #6b7280;
+        }
+      </style>
+      <h1>JavaScript est désactivé</h1>
+      <p>
+        Vous devez activer JavaScript pour utiliser Niplan Market.
+        <a
+          href="https://www.enable-javascript.com/fr/"
+          target="_blank"
+          rel="noopener"
+        >
+          Comment activer JavaScript ?
+        </a>
+      </p>
+    </noscript>
+
     <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

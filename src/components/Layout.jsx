@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Home, ShoppingBag, User, Sun, Moon } from "lucide-react";
 import { Outlet } from "react-router-dom";
 import ChatSupport from "./ChatSupport";
+import { InstallBanner } from "./pwa/InstallBanner";
 
 const Layout = ({ children }) => {
   const location = useLocation();
@@ -53,6 +54,7 @@ const Layout = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-bg-primary text-text-primary flex flex-col transition-colors duration-300">
+
       {/* HEADER */}
       <header className="sticky top-0 z-40 bg-bg-secondary border-b border-gray-200 dark:border-slate-800 shadow-sm">
         <div className="flex items-center justify-between px-4 py-3 max-w-7xl mx-auto">
@@ -86,6 +88,9 @@ const Layout = ({ children }) => {
       <main className="flex-1 px-4 pb-28 pt-4 max-w-7xl mx-auto w-full">
         {children || <Outlet />}
       </main>
+
+        {/* BANNIÈRE INSTALLATION PWA */}
+      <InstallBanner />
       {/* CHAT SUPPORT */}
       {/* BOTTOM NAV */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 px-4 pb-4">
