@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Share2, ExternalLink, Copy } from "lucide-react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
+import { trackAnalyticsEvent } from "../utils/analytics";
 
 const ShareBusiness = ({ slug }) => {
   const navigate = useNavigate();
@@ -10,6 +11,11 @@ const ShareBusiness = ({ slug }) => {
   const fullUrl = `${window.location.origin}/b/${slug}`;
 
   const handleShare = async () => {
+    trackAnalyticsEvent({
+      event_type: "share_click",
+      source: "dashboard_share",
+      business_slug: slug,
+    });
     if (navigator.share) {
       try {
         await navigator.share({

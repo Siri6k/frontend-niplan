@@ -30,10 +30,19 @@ const BusinessPage = () => {
     api
       .get(`/business/${slug}/`)
       .then((res) => {
-        setBusiness(res.data);
-        if (res.data.slug === localStorage.getItem("business_slug")) {
+        const data = res.data;
+        setBusiness(data);
+        if (data.slug === localStorage.getItem("business_slug")) {
           setIsMyBusiness(true);
         }
+        trackAnalyticsEvent({
+          event_type: "business_view",
+          source: "business_page",
+          business_slug: data.slug,
+          metadata: {
+            business_name: data.name,
+          },
+        });
       })
       .catch((err) => {
         toast.error("Boutique introuvable");
@@ -44,6 +53,16 @@ const BusinessPage = () => {
   }, [slug]);
 
   const handleShare = () => {
+    if (business) {
+      trackAnalyticsEvent({
+        event_type: "share_click",
+        source: "business_page",
+        business_slug: business.slug,
+        metadata: {
+          business_name: business.name,
+        },
+      });
+    }
     if (navigator.share) {
       navigator.share({
         title: business?.name,

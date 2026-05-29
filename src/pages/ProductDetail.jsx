@@ -43,7 +43,17 @@ const ProductDetail = () => {
       try {
         setLoading(true);
         const response = await api.get(`/v2/public/listings/${slug}/`);
-        setProduct(response.data);
+        const data = response.data;
+        setProduct(data);
+        trackAnalyticsEvent({
+          event_type: "listing_view",
+          source: "listing_detail",
+          listing_slug: data.slug,
+          business_slug: data.business_slug,
+          metadata: {
+            title: data.title || data.name,
+          },
+        });
       } catch (err) {
         console.error("Fetch error:", err);
         toast.error("Article introuvable");
@@ -77,6 +87,17 @@ const ProductDetail = () => {
   };
 
   const handleShare = () => {
+    if (product) {
+      trackAnalyticsEvent({
+        event_type: "share_click",
+        source: "listing_detail",
+        listing_slug: product.slug,
+        business_slug: product.business_slug,
+        metadata: {
+          title: product.title || product.name,
+        },
+      });
+    }
     if (navigator.share) {
       navigator.share({
         title: product?.title || product?.name,
