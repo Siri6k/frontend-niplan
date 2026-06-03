@@ -18,11 +18,9 @@ function addSubscriber(callback) {
   refreshSubscribers.push(callback);
 }
 
-// REQUEST INTERCEPTOR
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("access_token");
 
-  // Bloque requêtes protégées si token absent
   if (!token && config.url?.includes("/my-")) {
     return Promise.reject(new axios.Cancel("No token yet"));
   }
@@ -34,7 +32,6 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// RESPONSE INTERCEPTOR (AUTO REFRESH TOKEN)
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -42,7 +39,14 @@ api.interceptors.response.use(
 
     if (!error.response) return Promise.reject(error);
 
-    // Token expiré
+    const isAuthEndpoint =
+      originalRequest?.url?.includes("/auth/") ||
+      originalRequest?.url?.includes("/token/refresh/");
+
+    if (isAuthEndpoint) {
+      return Promise.reject(error);
+    }
+
     if (error.response.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 

@@ -13,6 +13,9 @@ import {
   Search,
   MessageCircle,
   BarChart3,
+  Eye,
+  Percent,
+  Store,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../api";
@@ -314,6 +317,42 @@ const Dashboard = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="glass-card bg-white/80 dark:bg-white/5 rounded-3xl p-5 border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-none">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">
+                Vues annonces
+              </p>
+              <Eye size={18} className="text-slate-600 dark:text-slate-300" />
+            </div>
+            <p className="text-3xl font-black text-slate-900 dark:text-white">
+              {analyticsSummary?.listing_views_total ?? 0}
+            </p>
+          </div>
+
+          <div className="glass-card bg-white/80 dark:bg-white/5 rounded-3xl p-5 border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-none">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">
+                Vues boutique
+              </p>
+              <Store size={18} className="text-violet-600 dark:text-violet-400" />
+            </div>
+            <p className="text-3xl font-black text-slate-900 dark:text-white">
+              {analyticsSummary?.business_views_total ?? 0}
+            </p>
+          </div>
+
+          <div className="glass-card bg-white/80 dark:bg-white/5 rounded-3xl p-5 border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-none">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">
+                Taux contact
+              </p>
+              <Percent size={18} className="text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <p className="text-3xl font-black text-slate-900 dark:text-white">
+              {analyticsSummary?.contact_rate ?? 0}%
+            </p>
+          </div>
+
           <div className="glass-card bg-white/80 dark:bg-white/5 rounded-3xl p-5 border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-none">
             <div className="flex items-center justify-between mb-4">
               <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">

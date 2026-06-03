@@ -45,15 +45,6 @@ const ProductDetail = () => {
         const response = await api.get(`/v2/public/listings/${slug}/`);
         const data = response.data;
         setProduct(data);
-        trackAnalyticsEvent({
-          event_type: "listing_view",
-          source: "listing_detail",
-          listing_slug: data.slug,
-          business_slug: data.business_slug,
-          metadata: {
-            title: data.title || data.name,
-          },
-        });
       } catch (err) {
         console.error("Fetch error:", err);
         toast.error("Article introuvable");
@@ -64,6 +55,24 @@ const ProductDetail = () => {
     };
     fetchProduct();
   }, [slug, navigate]);
+
+  useEffect(() => {
+    if (!product?.slug) return undefined;
+
+    const timeoutId = window.setTimeout(() => {
+      trackAnalyticsEvent({
+        event_type: "listing_view",
+        source: "listing_detail",
+        listing_slug: product.slug,
+        business_slug: product.business_slug,
+        metadata: {
+          title: product.title || product.name,
+        },
+      });
+    }, 1500);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [product?.slug, product?.business_slug, product?.title, product?.name]);
 
   const handleWhatsApp = () => {
     if (!product) return;

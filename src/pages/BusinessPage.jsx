@@ -35,14 +35,6 @@ const BusinessPage = () => {
         if (data.slug === localStorage.getItem("business_slug")) {
           setIsMyBusiness(true);
         }
-        trackAnalyticsEvent({
-          event_type: "business_view",
-          source: "business_page",
-          business_slug: data.slug,
-          metadata: {
-            business_name: data.name,
-          },
-        });
       })
       .catch((err) => {
         toast.error("Boutique introuvable");
@@ -51,6 +43,23 @@ const BusinessPage = () => {
         setIsLoading(false);
       });
   }, [slug]);
+
+  useEffect(() => {
+    if (!business?.slug) return undefined;
+
+    const timeoutId = window.setTimeout(() => {
+      trackAnalyticsEvent({
+        event_type: "business_view",
+        source: "business_page",
+        business_slug: business.slug,
+        metadata: {
+          business_name: business.name,
+        },
+      });
+    }, 1500);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [business?.slug, business?.name]);
 
   const handleShare = () => {
     if (business) {
