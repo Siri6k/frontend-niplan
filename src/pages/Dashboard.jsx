@@ -16,6 +16,7 @@ import {
   Eye,
   Percent,
   Store,
+  ChevronRight,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../api";
@@ -32,6 +33,8 @@ const Dashboard = () => {
   const [showForm, setShowForm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [analyticsSummary, setAnalyticsSummary] = useState(null);
+  const [showAllStats, setShowAllStats] = useState(false);
+  const [analytics, setAnalytics] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
   const role = localStorage.getItem("role") || "vendor";
   const isPhoneVerified = localStorage.getItem("is_phone_verified") || "false";
@@ -95,10 +98,14 @@ const Dashboard = () => {
 
       api
         .get("/analytics/vendor-summary/")
-        .then((res) => setAnalyticsSummary(res.data))
+        .then((res) => {
+          setAnalyticsSummary(res.data);
+          setAnalytics(res.data);
+        })
         .catch((error) => {
           console.warn("Analytics summary unavailable", error);
           setAnalyticsSummary(null);
+          setAnalytics(null);
         });
     } catch (err) {
       console.error("Dashboard Fetch Error:", err);
@@ -123,17 +130,9 @@ const Dashboard = () => {
 
   const handleEdit = async (slug, formData, isImageChanged) => {
     try {
-      // Détecte si c'est un produit V1 ou V2
-      // Si title est présent dans le formData original ou si c'est une édition de Listing
       const isV1 = !!editingProduct?.name;
 
-      const endpoint = `/v2/listings/${slug}/`; //const endpoint = isV2 ? `/v2/listings/${slug}/` : `/my-products/${slug}/`;
-      //const endpoint = isV2 ? `/v2/listings/${slug}/` : `/my-products/${slug}/`;
-
-      /*
-      if (isImageChanged && !formData.get("image")) {
-        if (!window.confirm("Supprimer l'image ?")) return;
-      }*/
+      const endpoint = `/v2/listings/${slug}/`;
       if (isV1) {
         if (slug) {
           await api.delete(`/my-products/${slug}/`);
@@ -169,6 +168,58 @@ const Dashboard = () => {
       toast.error("Erreur de suppression");
     }
   };
+
+  // ─── MINI STAT CARD ───
+  const MiniStat = ({ icon: Icon, label, value, color, trend }) => (
+    <div className="flex items-center gap-3 p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
+      <div
+        className={`w-10 h-10 rounded-xl flex items-center justify-center ${color}`}
+      >
+        <Icon size={18} />
+      </div>
+      <div className="min-w-0">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+          {label}
+        </p>
+        <p className="text-lg font-black text-slate-900 dark:text-white truncate">
+          {value ?? 0}
+        </p>
+      </div>
+      {trend && (
+        <span
+          className={`ml-auto text-[10px] font-black ${trend > 0 ? "text-green-500" : "text-red-500"}`}
+        >
+          {trend > 0 ? (
+            <ArrowUpRight size={14} />
+          ) : (
+            <ArrowDownRight size={14} />
+          )}
+        </span>
+      )}
+    </div>
+  );
+
+  // ─── EXPANDED STAT ROW ───
+  const StatRow = ({ icon: Icon, label, value, sub }) => (
+    <div className="flex items-center justify-between py-3 border-b border-slate-100 dark:border-slate-800 last:border-0">
+      <div className="flex items-center gap-3">
+        <Icon size={16} className="text-slate-400 dark:text-slate-600" />
+        <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
+          {label}
+        </span>
+      </div>
+      <div className="text-right">
+        <p className="text-sm font-black text-slate-900 dark:text-white">
+          {value ?? 0}
+        </p>
+        {sub && (
+          <p className="text-[10px] text-slate-400 dark:text-slate-600">
+            {sub}
+          </p>
+        )}
+      </div>
+    </div>
+  );
 
   if (!authReady || isLoading) {
     return (
@@ -315,81 +366,90 @@ const Dashboard = () => {
             {business && <ShareBusiness slug={business.slug} />}
           </motion.div>
         </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="glass-card bg-white/80 dark:bg-white/5 rounded-3xl p-5 border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-none">
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">
-                Vues annonces
-              </p>
-              <Eye size={18} className="text-slate-600 dark:text-slate-300" />
-            </div>
-            <p className="text-3xl font-black text-slate-900 dark:text-white">
-              {analyticsSummary?.listing_views_total ?? 0}
-            </p>
+        <div className="max-w-3xl mx-auto px-4 py-4 space-y-6">
+          {/* ─── MINI STATS GRID (4 visible) ─── */}
+          <div className="grid grid-cols-2 gap-2">
+            <MiniStat
+              icon={Eye}
+              label="Vues"
+              value={analytics?.listing_views_total}
+              color="bg-violet-500/10 text-violet-600 dark:text-violet-400"
+              trend={analytics?.views_trend}
+            />
+            <MiniStat
+              icon={Store}
+              label="Boutique"
+              value={analytics?.business_views_total}
+              color="bg-amber-500/10 text-amber-600 dark:text-amber-400"
+            />
+            <MiniStat
+              icon={TrendingUp}
+              label="Clics 7j"
+              value={analytics?.whatsapp_clicks_7d}
+              color="bg-green-500/10 text-green-600 dark:text-green-500"
+              trend={analytics?.clicks_trend}
+            />
+            <MiniStat
+              icon={TrendingUp}
+              label="Taux de contact"
+              value={
+                analytics?.contact_rate ? `${analytics.contact_rate}%` : "0%"
+              }
+              color="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+            />
           </div>
 
-          <div className="glass-card bg-white/80 dark:bg-white/5 rounded-3xl p-5 border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-none">
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">
-                Vues boutique
-              </p>
-              <Store size={18} className="text-violet-600 dark:text-violet-400" />
-            </div>
-            <p className="text-3xl font-black text-slate-900 dark:text-white">
-              {analyticsSummary?.business_views_total ?? 0}
-            </p>
-          </div>
+          {/* ─── EXPANDABLE DETAIL STATS ─── */}
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden">
+            <button
+              onClick={() => setShowAllStats(!showAllStats)}
+              className="w-full flex items-center justify-between p-4 text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+            >
+              <span className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                Détails analytiques
+              </span>
+              <ChevronRight
+                size={16}
+                className={`text-slate-400 transition-transform ${showAllStats ? "rotate-90" : ""}`}
+              />
+            </button>
 
-          <div className="glass-card bg-white/80 dark:bg-white/5 rounded-3xl p-5 border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-none">
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">
-                Taux contact
-              </p>
-              <Percent size={18} className="text-emerald-600 dark:text-emerald-400" />
-            </div>
-            <p className="text-3xl font-black text-slate-900 dark:text-white">
-              {analyticsSummary?.contact_rate ?? 0}%
-            </p>
-          </div>
-
-          <div className="glass-card bg-white/80 dark:bg-white/5 rounded-3xl p-5 border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-none">
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">
-                Clics WhatsApp
-              </p>
-              <MessageCircle size={18} className="text-green-600 dark:text-green-500" />
-            </div>
-            <p className="text-3xl font-black text-slate-900 dark:text-white">
-              {analyticsSummary?.whatsapp_clicks_total ?? 0}
-            </p>
-          </div>
-
-          <div className="glass-card bg-white/80 dark:bg-white/5 rounded-3xl p-5 border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-none">
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">
-                7 derniers jours
-              </p>
-              <TrendingUp size={18} className="text-blue-600 dark:text-blue-400" />
-            </div>
-            <p className="text-3xl font-black text-slate-900 dark:text-white">
-              {analyticsSummary?.whatsapp_clicks_7d ?? 0}
-            </p>
-          </div>
-
-          <div className="glass-card bg-white/80 dark:bg-white/5 rounded-3xl p-5 border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-none">
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">
-                Top annonce
-              </p>
-              <BarChart3 size={18} className="text-amber-600 dark:text-amber-400" />
-            </div>
-            <p className="text-sm font-black text-slate-900 dark:text-white truncate">
-              {analyticsSummary?.top_listings?.[0]?.title || "Aucun clic"}
-            </p>
-            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mt-2">
-              {analyticsSummary?.top_listings?.[0]?.whatsapp_clicks ?? 0} clics
-            </p>
+            {showAllStats && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                className="px-4 pb-4"
+              >
+                <StatRow
+                  icon={Eye}
+                  label="Vues totales annonces"
+                  value={analytics?.listing_views_total}
+                  sub="30 derniers jours"
+                />
+                <StatRow
+                  icon={Store}
+                  label="Vues boutique"
+                  value={analytics?.business_views_total}
+                />
+                <StatRow
+                  icon={TrendingUp}
+                  label="Clics WhatsApp total"
+                  value={analytics?.whatsapp_clicks_total}
+                />
+                <StatRow
+                  icon={TrendingUp}
+                  label="Clics WhatsApp 7j"
+                  value={analytics?.whatsapp_clicks_7d}
+                  sub={`${analytics?.contact_rate ?? 0}% conversion`}
+                />
+                <StatRow
+                  icon={Package}
+                  label="Annonce la plus vue"
+                  value={analytics?.top_listings?.[0]?.title}
+                  sub={`${analytics?.top_listings?.[0]?.whatsapp_clicks ?? 0} clics`}
+                />
+              </motion.div>
+            )}
           </div>
         </div>
 
