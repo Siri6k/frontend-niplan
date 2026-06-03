@@ -11,6 +11,7 @@ import AdminDashboard from "./pages/AdminPanel";
 import ProductDetail from "./pages/ProductDetail";
 import { ProtectedClientRoute } from "./components/protectedComponents/ProtectedClientRoute";
 import { ProtectedAdminRoute } from "./components/protectedComponents/ProtectedAdminRoute";
+import Error404Page from "./pages/Error404Page";
 
 function App() {
   return (
@@ -53,6 +54,7 @@ function App() {
           />
 
           {/* 404 */}
+          <Route path="*" element={<Error404Page />} />
         </Routes>
       </Layout>
     </div>
