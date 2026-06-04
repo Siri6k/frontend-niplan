@@ -12,8 +12,10 @@ import ProductDetail from "./pages/ProductDetail";
 import { ProtectedClientRoute } from "./components/protectedComponents/ProtectedClientRoute";
 import { ProtectedAdminRoute } from "./components/protectedComponents/ProtectedAdminRoute";
 import Error404Page from "./pages/Error404Page";
+import { usePWAUpdate } from "./hooks/ussePWAUpdate";
 
 function App() {
+  usePWAUpdate();
   return (
     <div>
       <Toaster position="top-center" reverseOrder={false} />
