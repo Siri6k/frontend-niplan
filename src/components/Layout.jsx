@@ -54,9 +54,9 @@ const Layout = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-bg-primary text-text-primary flex flex-col transition-colors duration-300">
-
       {/* HEADER */}
-      <header className="sticky top-0 z-40 bg-bg-secondary border-b border-gray-200 dark:border-slate-800 shadow-sm">
+      {/* HEADER — avec safe area pour l'encoche iPhone */}
+      <header className="sticky top-0 z-40 bg-bg-secondary border-b border-gray-200 dark:border-slate-800 shadow-sm pt-[env(safe-area-inset-top)]">
         <div className="flex items-center justify-between px-4 py-3 max-w-7xl mx-auto">
           <Link to="/" className="flex items-center gap-1">
             <h1 className="text-xl font-extrabold tracking-tight">
@@ -89,7 +89,7 @@ const Layout = ({ children }) => {
         {children || <Outlet />}
       </main>
 
-        {/* BANNIÈRE INSTALLATION PWA */}
+      {/* BANNIÈRE INSTALLATION PWA */}
       <InstallBanner />
       {/* CHAT SUPPORT */}
       {/* BOTTOM NAV */}
